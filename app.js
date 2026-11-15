@@ -263,7 +263,7 @@ function projForm(p) {
     <div class="dhead"><h2>${edit ? 'Edit project <small>(แก้ไขโครงการ)</small>' : 'New Project <small>(สร้างโครงการใหม่)</small>'}</h2><button type="button" class="icbtn" data-a="mclose" aria-label="Close (ปิด)">${icon('x')}</button></div>
     <div class="dbody">
     ${field('fname', 'Project name (ชื่อโครงการ) *', inp('fname', p?.name, 'เช่น บ้านคุณสมชาย ซอยลาดพร้าว 71', 60))}
-    ${edit ? '' : field('fcode', 'Project code, 4 digits (รหัสโครงการ 4 หลัก) *', '<input id="fcode" class="code" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••">', 'ใช้รหัสนี้ทุกครั้งที่เข้าโครงการ กรุณาจดไว้ (Keep this code safe)')}
+    ${edit ? '' : field('fcode', 'Project code, 4 digits (รหัสโครงการ 4 หลัก) *', '<input id="fcode" class="code" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="••••">', 'ใช้รหัสนี้ทุกครั้งที่เข้าโครงการ กรุณาจดไว้ (Keep this code safe)')}
     <div class="field"><span class="lbl">Project photo (รูปโครงการ)</span><div class="covpick" id="covw"></div>
       <div class="row"><label class="btn ghost sm">${icon('image')}<span>Choose photo (เลือกรูป)</span><input id="pcov" class="vh" type="file" accept="image/*"></label>
       <button type="button" class="btn ghost sm" id="covrm" data-a="covrm" hidden>${icon('trash')}Remove (ลบรูป)</button></div></div>
@@ -305,15 +305,17 @@ function gate(id) {
     <button type="button" class="icbtn close" data-a="mclose" aria-label="Close (ปิด)">${icon('x')}</button>
     <div class="gate-ic">${icon('lock', 'lg')}</div><h2 class="clip1 expand">${esc(p.name)}</h2>
     <p class="mu">Enter the 4-digit project code<br>(ใส่รหัส 4 หลักเพื่อเข้าโครงการ)</p>
-    <input id="gc" class="code big" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••" aria-label="Project code (รหัสโครงการ)" enterkeyhint="go" autofocus>
+    <input id="gc" class="code big" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="••••" aria-label="Project code (รหัสโครงการ)" enterkeyhint="go" autofocus>
     <p class="ferr center" id="ge" role="alert"></p>
-    <div class="dfoot"><button type="button" class="btn ghost" data-a="mclose">Cancel (ยกเลิก)</button><button class="btn pri">Open (เข้าสู่โครงการ)</button></div></form>`, 'narrow');
+    <div class="dfoot"><button type="button" class="btn ghost" data-a="mclose">Cancel (ยกเลิก)</button><button class="btn pri">Open (เข้าสู่โครงการ)</button></div></form>`, 'narrow kb');
   lockMsg(id, 'ge');
 }
 async function tryGate(id) {
-  const p = S.projects.find(x => x.id === id), inp = $('#gc'); if (!p || !inp) return;
+  const p = S.projects.find(x => x.id === id), inp = $('#gc'); if (!p || !inp || tryGate.busy) return;
   if (lockLeft(id)) return lockMsg(id, 'ge');
-  if (await checkCode(p, inp.value.trim())) { LS.del('hms_fail_' + id); closeModal(); transition(() => enter(p)); return; }
+  tryGate.busy = true; let ok = false;
+  try { ok = await checkCode(p, inp.value.trim()); } catch { $('#ge').textContent = 'ตรวจรหัสไม่ได้ในเบราว์เซอร์นี้ ลองเปิดด้วย Chrome หรือ Safari'; return; } finally { tryGate.busy = false; }
+  if (ok) { LS.del('hms_fail_' + id); closeModal(); transition(() => enter(p)); return; }
   const left = failCode(id); inp.value = ''; inp.classList.remove('shake'); void inp.offsetWidth; inp.classList.add('shake');
   if (left) $('#ge').textContent = `รหัสไม่ถูกต้อง (เหลืออีก ${left} ครั้ง)`; else lockMsg(id, 'ge');
 }
@@ -321,8 +323,8 @@ function delProjForm() {
   openModal(`<form class="form" data-f="delp" novalidate>
     <div class="dhead"><h2>Delete project <small>(ลบโครงการ)</small></h2><button type="button" class="icbtn" data-a="mclose" aria-label="Close (ปิด)">${icon('x')}</button></div>
     <div class="dbody"><div class="warn">${icon('alert')}<p>รูป แบบก่อสร้าง และแชททั้งหมดของ<b class="clip1 expand">${esc(S.proj.name)}</b>จะถูกลบถาวร กู้คืนไม่ได้</p></div>
-    ${field('dc', 'Enter project code to confirm (ใส่รหัส 4 หลักเพื่อยืนยัน)', '<input id="dc" class="code" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••" enterkeyhint="done">')}</div>
-    <div class="dfoot"><button type="button" class="btn ghost" data-a="mclose">Cancel (ยกเลิก)</button><button class="btn danger-fill">${icon('trash')}Delete (ลบ)</button></div></form>`, 'narrow');
+    ${field('dc', 'Enter project code to confirm (ใส่รหัส 4 หลักเพื่อยืนยัน)', '<input id="dc" class="code" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="••••" enterkeyhint="done">')}</div>
+    <div class="dfoot"><button type="button" class="btn ghost" data-a="mclose">Cancel (ยกเลิก)</button><button class="btn danger-fill">${icon('trash')}Delete (ลบ)</button></div></form>`, 'narrow kb');
   lockMsg(S.proj.id, 'dc-err');
 }
 async function delProject(btn) {
@@ -760,7 +762,12 @@ document.addEventListener('submit', e => {
 });
 document.addEventListener('input', e => {
   const t = e.target; t.removeAttribute('aria-invalid'); const fe = $('#' + t.id + '-err'); if (fe) fe.textContent = '';
-  if (t.classList.contains('code')) { t.value = t.value.replace(/\D/g, '').slice(0, 4); if (t.id === 'gc' && t.value.length === 4) t.form.requestSubmit(); }
+  if (t.classList.contains('code')) {
+    // Thai (๐-๙) and full-width digits from phone keyboards count as digits; then keep 4 digits only
+    const v = t.value.replace(/[๐-๙]/g, c => c.charCodeAt(0) - 0x0E50).replace(/[０-９]/g, c => c.charCodeAt(0) - 0xFF10).replace(/\D/g, '').slice(0, 4);
+    if (t.value !== v) t.value = v;
+    if (t.id === 'gc' && v.length === 4) tryGate(t.form.dataset.id);
+  }
   else if (t.id === 'pq') { S.q = t.value; drawProjects(); }
   else if (t.id === 'fi' && $('#cl')) showList();
   else if (t.id === 'ct') grow(t);

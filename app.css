@@ -351,6 +351,11 @@ body.in-proj .toast{bottom:calc(var(--nav) + var(--safe-b) + 14px)}
   .dlg::before{content:"";display:block;flex:none;width:40px;height:5px;margin:8px auto 0;border-radius:99px;background:var(--line-2)}
   .dlg.full{height:100dvh;max-height:100dvh;border-radius:0}
   .dlg.full::before{display:none}
+  /* code-entry dialogs sit at the top, so the on-screen keyboard never covers the input or the Open button */
+  .dlg.kb{width:calc(100% - 24px);margin:max(12px,env(safe-area-inset-top)) auto auto;border-radius:20px;border-bottom:1px solid var(--line-2);max-height:calc(100dvh - 24px)}
+  .dlg.kb[open]{animation:dlg-in .2s ease-out}
+  .dlg.kb::before{display:none}
+  .dlg.kb .dfoot{padding-bottom:14px}
   .brand small{max-width:52vw}
 }
 @keyframes sheet-in{from{transform:translateY(100%)}}
