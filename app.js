@@ -37,7 +37,7 @@ const val = id => ($('#' + id)?.value || '').trim();
 const toLocal = t => { const d = new Date(t || Date.now()); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 16); };
 const coarse = () => matchMedia('(pointer: coarse)').matches;
 const store = k => ({ get(n) { try { return window[k].getItem(n); } catch { return null; } }, set(n, v) { try { window[k].setItem(n, v); } catch { } }, del(n) { try { window[k].removeItem(n); } catch { } } });
-const LS = store('localStorage'), SS = store('sessionStorage');
+const LS = store('localStorage');
 const UID = LS.get('hms_uid') || (() => { const u = rid('u'); LS.set('hms_uid', u); return u; })();
 const errMsg = (e, d = 'เกิดข้อผิดพลาด ลองอีกครั้ง') => (e && /[ก-๙]/.test(e.message || '')) ? e.message : d;
 const empty = (ic, t, s = '') => `<div class="empty">${icon(ic, 'xl')}<b>${t}</b>${s ? `<p>${s}</p>` : ''}</div>`;
@@ -284,7 +284,7 @@ async function createProject(btn) {
     const id = rid('p'), salt = rid('s');
     const p = { name: n, codeHash: await hashCode(c, salt), salt, owner: val('fowner'), contractor: val('fcon'), location: val('floc'), cover, createdAt: Date.now() };
     await api.doc('projects/' + id).set(p); persist();
-    SS.set('hms_ok_' + id, '1'); closeModal(); enter({ id, ...p }); toast('Project created (สร้างโครงการแล้ว)', 'ok');
+    closeModal(); enter({ id, ...p }); toast('Project created (สร้างโครงการแล้ว)', 'ok');
   } catch (e) { if (cover) api.remove(cover).catch(() => { }); toast(errMsg(e, 'สร้างโครงการไม่สำเร็จ'), 'err'); busy(btn, false); }
 }
 async function saveProject(btn) {
@@ -301,7 +301,6 @@ async function saveProject(btn) {
 }
 function gate(id) {
   const p = S.projects.find(x => x.id === id); if (!p) return;
-  if (SS.get('hms_ok_' + id)) { transition(() => enter(p)); return; }
   openModal(`<form class="form gate" data-f="gate" data-id="${esc(id)}" novalidate>
     <button type="button" class="icbtn close" data-a="mclose" aria-label="Close (ปิด)">${icon('x')}</button>
     <div class="gate-ic">${icon('lock', 'lg')}</div><h2 class="clip1 expand">${esc(p.name)}</h2>
@@ -314,7 +313,7 @@ function gate(id) {
 async function tryGate(id) {
   const p = S.projects.find(x => x.id === id), inp = $('#gc'); if (!p || !inp) return;
   if (lockLeft(id)) return lockMsg(id, 'ge');
-  if (await checkCode(p, inp.value.trim())) { LS.del('hms_fail_' + id); SS.set('hms_ok_' + id, '1'); closeModal(); transition(() => enter(p)); return; }
+  if (await checkCode(p, inp.value.trim())) { LS.del('hms_fail_' + id); closeModal(); transition(() => enter(p)); return; }
   const left = failCode(id); inp.value = ''; inp.classList.remove('shake'); void inp.offsetWidth; inp.classList.add('shake');
   if (left) $('#ge').textContent = `รหัสไม่ถูกต้อง (เหลืออีก ${left} ครั้ง)`; else lockMsg(id, 'ge');
 }
@@ -339,7 +338,7 @@ async function delProject(btn) {
     }
     if (p.cover) await api.remove(p.cover).catch(() => { });
     await api.doc('projects/' + p.id).delete();
-    ['hms_role_', 'hms_read_', 'hms_fail_', 'hms_lock_'].forEach(k => LS.del(k + p.id)); SS.del('hms_ok_' + p.id);
+    ['hms_role_', 'hms_read_', 'hms_fail_', 'hms_lock_'].forEach(k => LS.del(k + p.id));
     closeModal(); transition(home); toast('Project deleted (ลบโครงการแล้ว)', 'ok');
   } catch { toast('ลบไม่สำเร็จ ลองอีกครั้ง', 'err'); busy(btn, false); }
 }
