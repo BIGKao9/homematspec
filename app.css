@@ -159,6 +159,18 @@ input[type=search]::-webkit-search-cancel-button{filter:invert(1)}
 .ph-meta{display:flex;flex-wrap:wrap;column-gap:14px;row-gap:0;min-width:0}
 .ph-meta .meta{max-width:100%;font-size:.8rem}
 .ph-meta .meta .mu{display:none}
+/* Edit / Delete: a slim icon column at the far right on phones, a row with labels from 640px */
+.pacts{display:flex;flex-direction:column;gap:6px;flex:none;margin-left:auto}
+.pacts .btn{width:38px;min-height:38px;padding:0;border-radius:10px}
+@media (max-width:639px){
+  .phead{gap:8px;align-items:flex-start}
+  .phead>.icbtn{width:32px;height:44px;margin-left:-8px;align-self:center}
+  .pthumb{height:48px;max-width:72px;align-self:center}
+  .ph-info h1{font-size:1.08rem;line-height:1.3;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere}
+  .ph-meta{flex-direction:column}
+  .ph-meta .meta{font-size:.78rem}
+}
+@media (min-width:640px){.pacts{flex-direction:row;gap:8px}.pacts .btn{width:auto;padding:7px 12px}}
 
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:15;display:grid;grid-template-columns:repeat(3,1fr);
   padding:4px max(6px,env(safe-area-inset-left)) calc(4px + var(--safe-b)) max(6px,env(safe-area-inset-right));

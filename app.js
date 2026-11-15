@@ -368,8 +368,8 @@ function drawTop() {
     <button class="icbtn" data-a="home" aria-label="Back to projects (กลับ)">${icon('back')}</button>
     ${p.cover ? `<img class="pthumb" src="${esc(api.url(p.cover))}" alt="" data-a="zoom" data-src="${esc(api.url(p.cover))}">` : ''}
     <div class="ph-info"><h1 class="clip1 expand">${esc(p.name)}</h1><div class="ph-meta">${metaLines(p)}</div></div>
-    <button class="btn ghost sm" data-a="editp" aria-label="Edit project (แก้ไขโครงการ)">${icon('edit')}<span class="hide-sm">Edit (แก้ไข)</span></button>
-    <button class="btn danger sm" data-a="delp" aria-label="Delete project (ลบโครงการ)">${icon('trash')}<span>Delete <small class="hide-sm">(ลบโครงการ)</small></span></button></div>`;
+    <div class="pacts"><button class="btn ghost sm" data-a="editp" aria-label="Edit project (แก้ไขโครงการ)">${icon('edit')}<span class="hide-sm">Edit (แก้ไข)</span></button>
+    <button class="btn danger sm" data-a="delp" aria-label="Delete project (ลบโครงการ)">${icon('trash')}<span class="hide-sm">Delete <small>(ลบโครงการ)</small></span></button></div></div>`;
 }
 function drawTabs() {
   const el = $('#tabs'); if (!el) return; const n = unread();
