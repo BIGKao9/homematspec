@@ -33,19 +33,41 @@ p{margin:0}
 .hdr{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;min-height:var(--hdr);padding:8px max(14px,env(safe-area-inset-left)) 8px max(14px,env(safe-area-inset-right));
   padding-top:max(8px,env(safe-area-inset-top));background:rgb(14 29 49/.82);backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px);border-bottom:1px solid var(--line)}
 .brand{display:flex;align-items:center;gap:10px;min-width:0;background:none;border:0;padding:0;text-align:left}
-.brand img{width:40px;height:40px;border-radius:10px;background:#fff}
-.brand b{display:block;font-size:1.12rem;letter-spacing:.2px;white-space:nowrap}
-.brand small{display:block;color:var(--mu);font-size:.74rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand img{width:50px;height:50px;border-radius:12px;background:#fff}
+.brand b{display:block;font-size:1.3rem;letter-spacing:.2px;white-space:nowrap}
+.brand small{display:block;color:var(--mu);font-size:.84rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .brand span{min-width:0}
-.credit{display:none;margin-left:auto;text-align:right;font-size:.74rem;line-height:1.35}
-.credit .l{color:#6e86a8;font-size:.68rem}.credit .n{color:#a9bdd8}
-.hdr .about{margin-left:auto}
+.credit{display:none;margin-left:auto;text-align:right;font-size:.9rem;line-height:1.35}
+.credit .l{color:#7d94b4;font-size:.8rem}.credit .n{color:#b8cae2}
+.hdr .about{margin-left:auto;width:50px;height:50px}
+.hdr .about .ic{width:28px;height:28px}
 
 /* layout */
 .wrap{width:100%;max-width:1120px;margin:0 auto;padding:16px max(14px,env(safe-area-inset-left)) 16px max(14px,env(safe-area-inset-right))}
-.pagehead{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:6px 0 14px}
-.pagehead h1{font-size:1.45rem}
-.pagehead .btn{flex:1 1 220px;max-width:340px}
+.pagehead{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:10px 0 20px}
+.ptitle{display:flex;flex-direction:column;justify-content:center;min-width:0}
+.pagehead h1{font-size:1.9rem;line-height:1.2}
+.pagehead h1 small{font-size:.62em}
+#pcount{font-size:1rem;margin-top:2px}
+#pcount:empty{display:none}
+.pagehead .btn{flex:1 1 240px;max-width:380px}
+.btn.lg{min-height:58px;padding:12px 22px;font-size:1.15rem;border-radius:14px}
+.btn.lg .ic{width:24px;height:24px;stroke-width:2.4}
+
+/* home page: larger type and icons */
+.home .empty{padding:56px 16px;gap:10px}
+.home .empty .ic{width:72px;height:72px;stroke-width:1.4}
+.home .empty b{font-size:1.4rem}
+.home .empty p{font-size:1.1rem}
+.home .search{min-height:54px;font-size:1.05rem}
+.home .search .ic{width:22px;height:22px}
+.home .pc-body{gap:5px;padding:14px 16px 16px}
+.home .pc-body b{font-size:1.3rem}
+.home .meta{font-size:1rem;gap:8px}
+.home .meta .ic{width:19px;height:19px}
+.home .pc-body small{font-size:.9rem}
+.home .pc-lock{width:36px;height:36px}
+.home .pc-lock .ic{width:18px;height:18px}
 
 /* buttons */
 .btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:var(--tap);padding:10px 18px;border-radius:var(--r-sm);
@@ -300,13 +322,21 @@ body.in-proj .toast{bottom:calc(var(--nav) + var(--safe-b) + 14px)}
   .hide-sm{display:inline}
 }
 @media (min-width:900px){
-  :root{--hdr:72px}
-  .brand img{width:48px;height:48px}
-  .brand b{font-size:1.3rem}.brand small{font-size:.82rem}
+  :root{--hdr:92px}
+  .brand{gap:14px}
+  .brand img{width:66px;height:66px;border-radius:16px}
+  .brand b{font-size:1.75rem}.brand small{font-size:1rem}
   .credit{display:block}
   .hdr .about{margin-left:0}
   .wrap{padding-left:24px;padding-right:24px}
-  .pagehead h1{font-size:1.7rem}
+  .pagehead{margin:18px 0 26px}
+  .pagehead h1{font-size:2.5rem}
+  #pcount{font-size:1.05rem}
+  .btn.lg{min-height:64px;font-size:1.25rem;padding:14px 28px}
+  .home .empty{padding:72px 16px}
+  .home .empty .ic{width:88px;height:88px}
+  .home .empty b{font-size:1.6rem}
+  .home .empty p{font-size:1.2rem}
   body.in-proj{padding-bottom:24px}
   .tabs{position:sticky;top:var(--hdr);bottom:auto;max-width:1120px;margin:0 auto;padding:8px 24px;grid-template-columns:repeat(3,auto);justify-content:start;gap:8px;background:rgb(10 22 38/.85);border-top:0;border-bottom:1px solid var(--line)}
   .tab{flex-direction:row;gap:10px;min-height:48px;padding:6px 14px;font-size:.95rem;border:1px solid transparent}
