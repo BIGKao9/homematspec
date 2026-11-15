@@ -576,9 +576,9 @@ async function pdfView(x) {
   } catch { if (live()) box.innerHTML = '<p class="ferr center">เปิดดูไฟล์นี้ไม่ได้ ลองกดดาวน์โหลดแทน (Cannot preview, try Download)</p>'; }
 }
 function about() {
-  openModal(`<div class="about"><div class="dhead"><h2>About <small>(เกี่ยวกับ)</small></h2><button class="icbtn" data-a="mclose" aria-label="Close (ปิด)">${icon('x')}</button></div>
-    <div class="dbody center"><img src="logo.png" width="88" height="88" alt="" class="about-logo"><h3>Home Material Spec</h3><p class="mu">Material & Spec Check<br>(ตรวจวัสดุและสเปกงานก่อสร้าง)</p>
-    <dl class="credits"><dt>Advisor (อาจารย์ที่ปรึกษา)</dt><dd>อาจารย์ศรันยู พรมศร</dd><dt>Developed by (จัดทำโดย)</dt><dd>นายวสุพล เปี่ยมจิตร</dd><dd>นายสุชาวัฒน์ นิสังกาศ</dd></dl></div></div>`, 'narrow');
+  openModal(`<div class="aboutbox"><div class="dhead"><h2>About <small>(เกี่ยวกับ)</small></h2><button class="icbtn" data-a="mclose" aria-label="Close (ปิด)">${icon('x')}</button></div>
+    <div class="dbody"><img src="logo.png" width="96" height="96" alt="" class="about-logo"><h3>Home Material Spec</h3><p class="mu sub">Material & Spec Check<br>(ตรวจวัสดุและสเปกงานก่อสร้าง)</p>
+    <dl class="credits"><div><dt>Advisor (อาจารย์ที่ปรึกษา)</dt><dd>อาจารย์ศรันยู พรมศร</dd></div><div><dt>Developed by (จัดทำโดย)</dt><dd>นายวสุพล เปี่ยมจิตร</dd><dd>นายสุชาวัฒน์ นิสังกาศ</dd></div></dl></div></div>`, 'narrow');
 }
 
 /* ---------- chat ---------- */
