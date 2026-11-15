@@ -15,7 +15,6 @@ const CONFIG = {
 const LIB = {
   pdf: { src: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js', sri: 'sha384-/1qUCSGwTur9vjf/z9lmu/eCUYbpOTgSjmpbMQZ1/CtX2v/WcAIKqRv+U1DUCG6e' },
   pdfWorker: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
-  zip: { src: 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js', sri: 'sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG' },
   supabase: { src: 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js', sri: 'sha384-GFr3yTh5lJznCbZfpTtXnwboFsxqtTQoeTZCRHhE0579KrRmlCzen5AA8ohaB5ug' }
 };
 const MAX_FILE = 25 * 1024 * 1024, MAX_PICK = 30, LOCK_TRIES = 5, LOCK_MS = 30000;
@@ -407,7 +406,7 @@ function card(x, ph) {
     <div class="in">${ph && CATS[x.cat] ? `<span class="tag clip1">${esc(CATS[x.cat])}</span>` : ''}
       <b class="clip1 expand">${esc(x.item || '(ไม่ระบุชื่อ)')}</b><time class="mu">${fmt(x.at, { dateStyle: 'medium', timeStyle: 'short' })}</time>
       ${x.note ? `<p class="note clip2 expand">${esc(x.note)}</p>` : ''}
-      <div class="acts">${pdf ? `<button class="btn ghost sm" data-a="viewpdf" ${i}>${icon('eye')}View (เปิดดู)</button>` : `<button class="btn ghost sm" data-a="dl" ${i}>${icon('download')}Download (ดาวน์โหลด)</button>`}
+      <div class="acts">${pdf ? `<button class="btn ghost sm" data-a="viewpdf" ${i}>${icon('eye')}View (เปิดดู)</button>` : `<button class="btn ghost sm" data-a="dl" ${i}>${icon('download')}<span><span class="hide-sm">Save </span>PDF<small class="hide-sm"> (บันทึก)</small></span></button>`}
       <button class="icbtn" data-a="more" ${i} aria-label="More actions (ตัวเลือกเพิ่มเติม)">${icon('more')}</button></div></div></article>`;
 }
 function drawList() {
@@ -425,8 +424,7 @@ function drawList() {
 function moreSheet(x) {
   const ph = S.tab === 'photos', pdf = x.kind === 'pdf', n = ids(x).length, i = `data-id="${esc(x.id)}"`;
   openModal(`<div class="sheet"><div class="dhead"><h2 class="clip1 expand">${esc(x.item || '(ไม่ระบุชื่อ)')}</h2><button class="icbtn" data-a="mclose" aria-label="Close (ปิด)">${icon('x')}</button></div><div class="menu">
-    ${pdf ? `<button data-a="dl" ${i}>${icon('download')}Download PDF (ดาวน์โหลด)</button>` : ''}
-    ${!pdf && n > 1 ? `<button data-a="dlall" ${i}>${icon('stack')}Download all ${n} photos (ดาวน์โหลดทั้งหมดเป็น ZIP)</button>` : ''}
+    <button data-a="dl" ${i}>${icon('download')}Save PDF (บันทึกเป็น PDF${!pdf && n > 1 ? ` ทั้ง ${n} รูป` : ''})</button>
     ${ph ? `<button data-a="addph" ${i}>${icon('plus')}Add photos (เพิ่มรูป)</button>` : ''}
     <button data-a="edititem" ${i}>${icon('edit')}${ph ? 'Edit details (แก้ไขรายละเอียด)' : 'Rename (แก้ไขชื่อ)'}</button>
     <button class="danger" data-a="del" ${i}>${icon('trash')}Delete (ลบ)</button></div></div>`, 'narrow');
@@ -552,21 +550,79 @@ async function delItem(x, btn) {
 }
 
 /* ---------- downloads & viewers ---------- */
-async function dlOne(x, k = 0) {
-  try {
-    const all = ids(x), id = all[k] || all[0], b = await (await fetch(api.url(id))).blob();
-    const base = safeName(x.item || x.fname) || (x.kind === 'pdf' ? 'drawing' : 'photo');
-    await saveBlob(b, base + (all.length > 1 ? '_' + (k + 1) : '') + '.' + (EXT[b.type] || (x.kind === 'pdf' ? 'pdf' : 'jpg')));
-  } catch { toast('ดาวน์โหลดไม่สำเร็จ', 'err'); }
+/* PDF export: every saved file is a PDF. Each photo becomes one A4 page, drawn on a canvas with the
+   page's own Sarabun font (so Thai renders exactly as on screen) and embedded as a JPEG in a small
+   hand-written PDF, with no library or font embedding needed. Uploaded PDF drawings are saved as the original. */
+const A4 = { w: 595.28, h: 841.89 }, PX = 1240, PY = Math.round(PX * A4.h / A4.w);
+function wrapText(g, para, maxW) {
+  const parts = window.Intl?.Segmenter ? [...new Intl.Segmenter('th', { granularity: 'word' }).segment(para)].map(s => s.segment) : [...para];
+  const lines = []; let cur = '';
+  for (const part of parts) {
+    if (g.measureText(cur + part).width <= maxW) { cur += part; continue; }
+    if (cur) { lines.push(cur); cur = ''; }
+    for (const ch of part.trimStart()) { if (g.measureText(cur + ch).width > maxW) { lines.push(cur); cur = ch; } else cur += ch; }
+  }
+  if (cur || !lines.length) lines.push(cur);
+  return lines;
 }
-async function dlAll(x, btn) {
+async function pdfPage(x, bmp, k, n) {
+  const c = document.createElement('canvas'), g = c.getContext('2d'), M = 70, W = PX - M * 2;
+  c.width = PX; c.height = PY; g.fillStyle = '#fff'; g.fillRect(0, 0, PX, PY); g.textBaseline = 'top';
+  let y = M;
+  const text = (s, size, weight, color, maxLines) => {
+    g.font = `${weight} ${size}px Sarabun, "Noto Sans Thai", sans-serif`; g.fillStyle = color;
+    const lines = String(s).split('\n').flatMap(p => wrapText(g, p, W)).slice(0, maxLines);
+    for (const line of lines) { g.fillText(line, M, y); y += size * 1.5; }
+    y += 6;
+  };
+  text(`Home Material Spec · ${S.proj?.name || ''}`, 24, 600, '#5b6b80', 2);
+  g.fillStyle = '#e0a43a'; g.fillRect(M, y, W, 4); y += 24;
+  text(x.item || '(ไม่ระบุชื่อ)', 44, 700, '#0b1a2e', 3);
+  const cat = Number.isInteger(x.cat) && CATS[x.cat] ? `หมวดงาน: ${CATS[x.cat]}` : '';
+  text([cat, `วันเวลา: ${fmt(x.at, { dateStyle: 'long', timeStyle: 'short' })}`, n > 1 ? `รูปที่ ${k + 1} จาก ${n}` : ''].filter(Boolean).join('    ·    '), 26, 400, '#33465c', 3);
+  if (x.note && k === 0) text(`หมายเหตุ: ${x.note}`, 26, 400, '#33465c', 6);
+  y += 12;
+  const foot = 50, boxH = PY - y - M - foot, s = Math.min(W / bmp.width, boxH / bmp.height), iw = bmp.width * s, ih = bmp.height * s;
+  g.drawImage(bmp, M + (W - iw) / 2, y + (boxH - ih) / 2, iw, ih);
+  g.font = '400 20px Sarabun, sans-serif'; g.fillStyle = '#8a97a8';
+  g.fillText(`พิมพ์เมื่อ ${fmt(Date.now(), { dateStyle: 'medium', timeStyle: 'short' })}${n > 1 ? `   ·   หน้า ${k + 1}/${n}` : ''}`, M, PY - M - 20);
+  return { w: PX, h: PY, jpg: new Uint8Array(await (await new Promise(r => c.toBlob(r, 'image/jpeg', .88))).arrayBuffer()) };
+}
+function makePdf(pages) {
+  const enc = new TextEncoder(), parts = [], offs = []; let len = 0;
+  const put = b => { const u = typeof b === 'string' ? enc.encode(b) : b; parts.push(u); len += u.length; };
+  const obj = (id, head, stream) => { offs[id] = len; put(`${id} 0 obj\n${head}\n`); if (stream) { put('stream\n'); put(stream); put('\nendstream\n'); } put('endobj\n'); };
+  put('%PDF-1.4\n%âãÏÓ\n');
+  obj(1, '<< /Type /Catalog /Pages 2 0 R >>');
+  obj(2, `<< /Type /Pages /Kids [${pages.map((_, i) => `${3 + i * 3} 0 R`).join(' ')}] /Count ${pages.length} >>`);
+  pages.forEach((p, i) => {
+    const id = 3 + i * 3, draw = enc.encode(`q ${A4.w} 0 0 ${A4.h} 0 0 cm /Im0 Do Q`);
+    obj(id, `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${A4.w} ${A4.h}] /Resources << /XObject << /Im0 ${id + 2} 0 R >> >> /Contents ${id + 1} 0 R >>`);
+    obj(id + 1, `<< /Length ${draw.length} >>`, draw);
+    obj(id + 2, `<< /Type /XObject /Subtype /Image /Width ${p.w} /Height ${p.h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${p.jpg.length} >>`, p.jpg);
+  });
+  const size = 3 + pages.length * 3, xref = len;
+  put(`xref\n0 ${size}\n0000000000 65535 f \n${offs.slice(1, size).map(o => `${String(o).padStart(10, '0')} 00000 n \n`).join('')}`);
+  put(`trailer\n<< /Size ${size} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`);
+  return new Blob(parts, { type: 'application/pdf' });
+}
+async function savePdf(x, btn) {
   busy(btn, true);
   try {
-    if (!window.JSZip) await loadJs(LIB.zip);
-    const z = new JSZip(), base = safeName(x.item || x.fname) || 'photos', all = ids(x);
-    for (let i = 0; i < all.length; i++) { const b = await (await fetch(api.url(all[i]))).blob(); z.file(`${base}_${i + 1}.${EXT[b.type] || 'jpg'}`, b); }
-    await saveBlob(await z.generateAsync({ type: 'blob' }), base + '.zip'); closeModal();
-  } catch (e) { toast(errMsg(e, 'ดาวน์โหลดไม่สำเร็จ'), 'err'); busy(btn, false); }
+    const base = safeName(x.item || x.fname) || (x.kind === 'pdf' ? 'drawing' : 'photo');
+    if (x.kind === 'pdf') await saveBlob(await (await fetch(api.url(x.asset))).blob(), base + '.pdf');
+    else {
+      await Promise.all(['700 44px Sarabun', '400 26px Sarabun', '600 24px Sarabun'].map(f => document.fonts?.load(f))).catch(() => { });
+      const all = ids(x), pages = [];
+      for (let k = 0; k < all.length; k++) {
+        const bmp = await createImageBitmap(await (await fetch(api.url(all[k]))).blob());
+        pages.push(await pdfPage(x, bmp, k, all.length)); bmp.close?.();
+      }
+      await saveBlob(makePdf(pages), base + '.pdf');
+    }
+    toast('Saved PDF (บันทึก PDF แล้ว)', 'ok');
+  } catch (e) { toast(errMsg(e, 'บันทึก PDF ไม่สำเร็จ'), 'err'); }
+  busy(btn, false);
 }
 async function pdfView(x) {
   const tok = ++pdfTok + 0;
@@ -649,8 +705,7 @@ const A = {
   edititem: d => { const x = item(d.id); if (x) editItem(x); },
   del: d => { const x = item(d.id); if (x) confirmDel(x); },
   delok: (d, el) => { const x = item(d.id); if (x) delItem(x, el); },
-  dl: (d, el) => { const x = item(d.id); if (!x) return; const t = el.closest('.item')?.querySelector('.gtrack'); dlOne(x, t ? Math.round(t.scrollLeft / t.clientWidth) : 0); },
-  dlall: (d, el) => { const x = item(d.id); if (x) dlAll(x, el); },
+  dl: (d, el) => { const x = item(d.id); if (x) savePdf(x, el); },
   viewpdf: d => { const x = item(d.id); if (x) pdfView(x); },
   zoom: d => { const lb = $('#lb'); $('img', lb).src = d.src; lb.showModal(); },
   lbx: () => $('#lb').close(),
