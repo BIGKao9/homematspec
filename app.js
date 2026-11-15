@@ -4,7 +4,13 @@
    ตั้งค่า backend: ใส่ supabaseUrl และ supabaseKey เมื่อพร้อมใช้ฐานข้อมูลกลาง
    (ถ้าเว้นว่าง ข้อมูลจะเก็บในเบราว์เซอร์ของเครื่องนั้น)
    ========================================================================= */
-const CONFIG = { supabaseUrl: '', supabaseKey: '', bucket: 'hms' };
+/* anon key = public by design (safe in browser code); access is governed by the RLS policies in setup.sql.
+   Never put the service_role key here. */
+const CONFIG = {
+  supabaseUrl: 'https://czyefarlcanffczymewb.supabase.co',
+  supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6eWVmYXJsY2FuZmZjenltZXdiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ3NjAzMTcsImV4cCI6MjExMDMzNjMxN30.1BDNW0KWKxejxbXT5iazqYDW8aNPSwsrSHL83UyUbJo',
+  bucket: 'hms'
+};
 
 const LIB = {
   pdf: { src: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js', sri: 'sha384-/1qUCSGwTur9vjf/z9lmu/eCUYbpOTgSjmpbMQZ1/CtX2v/WcAIKqRv+U1DUCG6e' },
