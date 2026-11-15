@@ -1,514 +1,77 @@
 <!doctype html>
-<html lang="th"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' blob: data: https://*.supabase.co; connect-src 'self' blob: https://*.supabase.co wss://*.supabase.co https://cdnjs.cloudflare.com; worker-src 'self' blob: https://cdnjs.cloudflare.com; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <title>Home Material Spec</title>
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
-<style>
-:root{--bg:#0b1a2e;--bg2:#10233b;--card:#15304f;--line:#264566;--tx:#e8eef7;--mu:#93a8c2;--ac:#e0a43a;--bl:#2a7f9e;--dn:#e5736b;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
-body{margin:0;min-height:100%;background:var(--bg);color:var(--tx);font:16px/1.55 Sarabun,"Noto Sans Thai",system-ui,sans-serif}
-header{display:flex;align-items:center;gap:16px;padding:12px 16px;background:var(--bg2);border-bottom:1px solid var(--line)}
-.logo{width:84px;height:84px;aspect-ratio:1/1;flex:none;border-radius:14px;overflow:hidden;background:#eef1f4}.logo img{width:100%;height:100%;display:block;object-fit:cover}
-header b{font-size:38px;line-height:1.15;letter-spacing:.3px}header small{display:block;color:var(--mu);font-size:1.05rem}
-.wrap,.layout{max-width:1100px;margin:0 auto;padding:14px}
-h2{margin:6px 0 12px}h3{margin:0 0 8px}.mu{color:var(--mu)}.err{color:var(--dn);min-height:1.4em;margin:6px 0}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:12px 0}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
-label{display:block;margin:10px 0 4px;color:var(--mu);font-size:.9rem}
-input,select,textarea{width:100%;min-height:46px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--tx);font:inherit}
-textarea{min-height:76px;resize:vertical}
-.btn,summary.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:46px;padding:10px 18px;border:0;border-radius:10px;background:var(--ac);color:#1a1406;font:600 1rem Sarabun,sans-serif;cursor:pointer;margin-top:12px;list-style:none}
-summary::-webkit-details-marker{display:none}
-.btn.ghost{background:transparent;color:var(--tx);border:1px solid var(--line)}.btn:disabled{opacity:.6}
-.row{display:flex;gap:10px;flex-wrap:wrap}.row .btn{flex:1}
-.proj{cursor:pointer;text-align:left;color:var(--tx);font:inherit;width:100%;border:1px solid var(--line);background:var(--card);border-radius:14px;padding:16px;min-height:80px}
-.proj:hover{border-color:var(--ac)}.proj b{display:block;font-size:1.05rem}
-.bar{display:flex;align-items:center;gap:10px;padding:10px 14px;max-width:1100px;margin:0 auto}.bar b{flex:1;min-width:0;overflow-wrap:anywhere}
-.bar{flex-wrap:wrap}.bar .btn{margin:0;min-height:44px}.btn.danger{color:var(--dn);border-color:var(--dn)}.btn.danger-fill{background:var(--dn);color:#fff}
-.tabs{display:flex;gap:8px;padding:0 14px;max-width:1100px;margin:0 auto}
-.tabs button{flex:1;min-height:46px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--mu);font:600 1rem Sarabun,sans-serif;cursor:pointer}
-.tabs button.on{background:var(--bl);color:#fff;border-color:var(--bl)}
-.layout{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
-nav{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px}
-nav button{flex:none;white-space:nowrap;min-height:44px;padding:8px 14px;border-radius:22px;border:1px solid var(--line);background:var(--bg2);color:var(--tx);font:inherit;cursor:pointer;text-align:left}
-nav button.on{background:var(--ac);color:#1a1406;border-color:var(--ac);font-weight:600}
-@media(min-width:900px){.layout{grid-template-columns:250px minmax(0,1fr)}nav{flex-direction:column;overflow:visible;position:sticky;top:12px;align-self:start}nav button{border-radius:10px;white-space:normal}}
-details.card summary{margin:0}details[open] summary{margin-bottom:6px}
-.day{margin:18px 0 8px;color:var(--ac);font-weight:600}
-.ph{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
-.ph img{width:100%;aspect-ratio:16/9;object-fit:contain;cursor:zoom-in;background:#0006;display:block}
-.in{padding:12px;display:flex;flex-direction:column;gap:4px;flex:1}.in p{margin:2px 0;overflow-wrap:anywhere;white-space:pre-wrap}
-.tag{align-self:flex-start;font-size:.78rem;background:var(--bl);padding:2px 10px;border-radius:12px}
-time{color:var(--mu);font-size:.85rem}
-.x{align-self:flex-end;margin-top:auto;min-height:40px;padding:6px 12px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--dn);font:inherit;cursor:pointer}
-.pdf{display:flex;align-items:center;justify-content:center;aspect-ratio:4/3;background:var(--bg2);color:var(--ac);font-weight:700;text-decoration:none;font-size:1.2rem}
-#modal,#lb{position:fixed;inset:0;background:#000c;display:flex;align-items:center;justify-content:center;padding:16px;z-index:20}
-#modal[hidden],#lb[hidden],#toast[hidden]{display:none}
-.box{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;width:100%;max-width:360px}
-#lb img{max-width:100%;max-height:100%;object-fit:contain}
-#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--ac);color:#1a1406;padding:10px 18px;border-radius:24px;z-index:30;max-width:90%;font-weight:600}
-.box.wide{max-width:460px;max-height:92vh;overflow-y:auto}.pi{flex:1;min-width:0}.pi b{display:block}.sm{font-size:.85rem;display:block;overflow-wrap:anywhere}.proj .sm{margin-top:4px}.bigbtn{width:100%;font-size:1.05rem;margin:0 0 14px}.wrap h2{text-align:center}.empty{text-align:center;margin:28px 0}.cov{width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:var(--bg);border:1px dashed var(--line);display:flex;align-items:center;justify-content:center;margin:6px 0 8px}.cov img{width:100%;height:100%;object-fit:cover;display:block}.thumb{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px;display:block;margin-bottom:10px}.bthumb{width:52px;height:52px;border-radius:10px;object-fit:cover;flex:none}.row2{display:flex;gap:10px}.row2 .btn{flex:1;margin-top:8px}.bar{display:block;max-width:1100px;margin:0 auto;padding:10px 14px}.pcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:12px}.ptop{display:flex;gap:12px;align-items:flex-start}.ptop .bthumb{width:76px;height:76px;border-radius:12px}.ptop .pi{flex:1;min-width:0;overflow-wrap:anywhere}.ptop .pi b{font-size:1.1rem;line-height:1.35}.pbtn{display:grid;grid-template-columns:1fr 1fr;gap:8px}.pbtn .btn{margin:0;min-height:46px;padding:8px 10px;white-space:normal;text-align:center}.pbtn .danger{grid-column:1/-1}@media(min-width:700px){.pbtn{grid-template-columns:repeat(3,auto);justify-content:start}.pbtn .danger{grid-column:auto}}.layout.one{grid-template-columns:minmax(0,1fr)}@media(min-width:900px){.layout.one{grid-template-columns:minmax(0,1fr)}}a.btn{text-decoration:none}.box.xl{max-width:900px;max-height:92vh;overflow-y:auto}.pdfv{width:100%;height:65vh;border:0;background:#fff;border-radius:8px;margin:8px 0}.pdf{font-size:2rem;letter-spacing:2px}.x.xc{align-self:center;min-width:150px}.in .row2 .btn{margin-top:8px}.pgs{max-height:68vh;overflow:auto;background:#fff;border-radius:8px;margin:8px 0;padding:2px}.pgs canvas{display:block;margin:0 0 6px}.pgs p{color:#333;padding:12px}.pgs .err{color:#b3261e}details.card summary{display:flex;width:fit-content;margin:0 auto}details.card:not([open]){background:none;border:0;padding:0;margin:12px 0}.ptop .bthumb{width:auto;height:auto;max-width:120px;max-height:120px;object-fit:contain;background:none}@media(min-width:700px){.ptop .bthumb{max-width:260px;max-height:170px}}.thumb{object-fit:fill}.proj{overflow:hidden;min-width:0}.proj b,.proj .sm,.pi b,.pi .sm,.ptop .pi b{display:block;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal}.ptop .pi{overflow:hidden}.box{overflow:hidden}.box.wide,.box.xl{overflow-y:auto}.box h3{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}.thumb{object-fit:contain;background:var(--bg)}.ptop .bthumb{flex:none;width:130px;height:90px;max-width:none;max-height:none;object-fit:contain;background:var(--bg);border-radius:10px}@media(min-width:700px){.ptop .bthumb{width:260px;height:160px}}.ptop .bthumb{width:160px;height:auto;aspect-ratio:16/9}@media(min-width:700px){.ptop .bthumb{width:288px;height:auto;aspect-ratio:16/9}}.thumb{aspect-ratio:16/9;object-fit:contain}.lbback{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:12px;margin:0;background:#10233be6;z-index:25}input,textarea{text-overflow:ellipsis}.in b,.in time,.in p{display:block;max-width:100%;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal}.frow{display:flex;justify-content:space-between;align-items:center;gap:10px}.frow .btn{margin-top:12px}input[type=datetime-local]::-webkit-calendar-picker-indicator{filter:invert(1) brightness(1.4);opacity:1;width:26px;height:26px;cursor:pointer;padding:4px}.combo{position:relative}.combo input{padding-right:50px}.cbtn{position:absolute;right:4px;top:3px;height:40px;width:42px;border:0;background:transparent;color:var(--tx);font-size:.95rem;cursor:pointer;margin:0}.clist{position:absolute;left:0;right:0;top:calc(100% + 4px);max-height:240px;overflow-y:auto;background:var(--bg2);border:1px solid var(--ac);border-radius:10px;z-index:15;-webkit-overflow-scrolling:touch;box-shadow:0 8px 24px #0008}.clist[hidden]{display:none}.copt{display:block;width:100%;min-height:44px;padding:10px 14px;text-align:left;background:transparent;color:var(--tx);border:0;border-bottom:1px solid var(--line);font:inherit;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.copt:hover,.copt:active{background:var(--bl)}input[type=datetime-local]{display:block;min-width:0;max-width:100%;text-align:left;-webkit-appearance:none;appearance:none}input[type=datetime-local]::-webkit-date-and-time-value{text-align:left;min-width:0}input[type=datetime-local]::-webkit-datetime-edit{padding:0}.cbtn{right:0;width:34px;display:flex;align-items:center;justify-content:center}.combo input{padding-right:40px}select{-webkit-appearance:none;appearance:none;padding-right:44px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none' stroke='%23e8eef7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1.5 1.5l4.5 4.5 4.5-4.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}.cbtn{right:0;width:40px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none' stroke='%23e8eef7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1.5 1.5l4.5 4.5 4.5-4.5'/%3E%3C/svg%3E") no-repeat center}.combo input{padding-right:44px}.row2 .btn{display:inline-block;text-align:center;line-height:1.35;padding:8px 10px}.pv{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;margin-top:8px}.pvi{position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--bg);display:flex;align-items:center;justify-content:center;color:var(--ac);font-weight:700}.pvi img{width:100%;height:100%;object-fit:cover;display:block}.pvi button{position:absolute;top:3px;right:3px;width:28px;height:28px;border-radius:14px;border:0;background:#000b;color:#fff;font-size:.85rem;cursor:pointer;padding:0}.pvc{grid-column:1/-1}.gal{position:relative}.gtrack{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}.gtrack::-webkit-scrollbar{display:none}.gtrack img{flex:none;width:100%;scroll-snap-align:center}.gcnt{position:absolute;right:8px;bottom:8px;background:#000a;color:#fff;padding:2px 10px;border-radius:12px;font-size:.8rem}.gnav{position:absolute;top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:19px;border:0;background:#000a;color:#fff;font-size:1.5rem;line-height:1;cursor:pointer;margin:0;padding:0}.gl{left:8px}.gr{right:8px}.row2 .btn{min-height:34px;padding:4px 8px;font-size:.85rem;font-weight:600;line-height:1.25;border-radius:8px;margin-top:6px}
-.in .row2{gap:4px;margin:0}
-.in .row2 .btn{margin:4px 0 0;min-height:34px;padding:4px 8px;font-size:.85rem;font-weight:600;line-height:1.25;border-radius:8px}
-.in .x,.in .x.xc{margin:4px 0 0;align-self:stretch;min-width:0;min-height:34px;padding:4px 8px;font-size:.85rem;font-weight:600;line-height:1.25;border-radius:8px}
-.pcard{position:relative}
-.chatopen{position:relative;gap:8px}
-.cbadge{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;border-radius:99px;background:#d63c3c;color:#fff;font-size:.8rem;font-weight:700;line-height:1}
-.cbadge[hidden]{display:none}
-.chatopen.unread{animation:glow 1.8s ease-in-out infinite}
-.chatopen.pop .cbadge{animation:pop .6s ease}
-@keyframes pop{0%{transform:scale(.3)}50%{transform:scale(1.5)}100%{transform:scale(1)}}
-@keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(224,164,58,.0)}50%{box-shadow:0 0 0 6px rgba(224,164,58,.35)}}
-@media(prefers-reduced-motion:reduce){.chatopen.unread,.chatopen.pop .cbadge{animation:none}}
-.chatopen{margin:0;min-height:44px;padding:6px 16px;width:100%;line-height:1.25}
-@media(min-width:700px){.chatopen{position:absolute;top:14px;right:14px;width:auto;min-width:270px;min-height:68px;padding:10px 24px;font-size:1.3rem;gap:12px}.chatopen .cbadge{min-width:28px;height:28px;font-size:1rem}.pcard .ptop{padding-right:300px}}
-.chat{max-width:760px;margin:0 auto}
-.chtop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}.chtop .btn{margin:0;flex:none;min-height:34px;padding:4px 12px;font-size:.85rem;line-height:1.25}
-.chwho{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}.ch-t{margin:4px 0}
-.rolegrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.rolegrid .btn{margin:0;min-height:64px;line-height:1.3;flex:none}
-@media(max-width:520px){.rolegrid{grid-template-columns:1fr}}
-.chbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}.chme{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
-.chg{margin:0;flex:none;min-height:34px;padding:4px 10px;font-size:.85rem;line-height:1.25}
-.rtag{display:inline-block;padding:2px 9px;border-radius:99px;color:#fff;font-size:.75rem;font-weight:600;line-height:1.4}
-.cmsgs{display:flex;flex-direction:column;height:min(58vh,560px);min-height:240px;overflow-y:auto;padding:8px;border:1px solid var(--line);border-radius:12px;background:var(--bg2)}
-.msg{max-width:88%;align-self:flex-start;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin:5px 0}
-.msg.me{align-self:flex-end;background:#1d4a66}
-.mh{display:flex;align-items:center;flex-wrap:wrap;gap:6px;font-size:.85rem;margin-bottom:3px}.mh time{color:var(--mu);font-size:.75rem}
-.mt{white-space:pre-wrap;overflow-wrap:anywhere}
-.cdel{margin-left:auto;background:transparent;border:0;color:var(--mu);cursor:pointer;font:inherit;font-size:.8rem;padding:2px 4px}
-.csend{display:flex;gap:8px;align-items:stretch;margin-top:8px}.csend textarea{min-height:46px;height:46px;resize:none;flex:1}.csend .btn{flex:none;margin:0;min-height:46px;padding:4px 16px;line-height:1.25}
-.rdb{white-space:pre-wrap;overflow-wrap:anywhere;max-height:60vh;overflow-y:auto;margin:6px 0 14px;font-weight:600}
-.in b,.in p,.pi b,.pi .sm,.proj b,.proj .sm{cursor:pointer}.proj{cursor:default}.selbtn{display:flex;align-items:center;justify-content:center;width:100%;margin-top:12px;min-height:40px;padding:8px 12px;text-align:center;white-space:normal;line-height:1.3}
-@media(max-width:520px){.logo{width:68px;height:68px}header b{font-size:28px}header small{font-size:.82rem}}
-.nophoto{display:flex;align-items:center;justify-content:center;background:var(--bg);border:1px dashed var(--line);color:var(--mu);font-size:.9rem;text-align:center}
-#plist{max-height:calc(100vh - 230px);min-height:200px;overflow-y:auto;align-content:start;padding-right:4px}
-.credit{margin-left:auto;text-align:right;line-height:1.3;flex:none}
-.cr-l{color:#5f7798;font-size:10px}.cr-n{color:#8fa6c7;font-size:11.5px}.cr-g{margin-bottom:4px}
-@media(max-width:700px) and (orientation:portrait){header .credit{display:none}}
-</style></head><body>
-<header><div class="logo"><img src="data:image/png;base64,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" alt="Home Material Spec"></div><div><b>Home Material Spec</b><small>Material & Spec Check (ตรวจวัสดุและสเปกงานก่อสร้าง)</small></div><div class="credit"><div class="cr-l">Advisor (อาจารย์ที่ปรึกษา)</div><div class="cr-n cr-g">อาจารย์ศรันยู พรมศร</div><div class="cr-l">Developed by (จัดทำโดย)</div><div class="cr-n">นายวสุพล เปี่ยมจิตร</div><div class="cr-n">นายสุชาวัฒน์ นิสังกาศ</div></div></header>
-<div id="app"><p class="wrap mu">กำลังโหลด…</p></div>
-<div id="modal" hidden></div><div id="lb" hidden data-a="lbx"><button class="btn ghost lbback" data-a="lbx">← Back (กลับ)</button><img alt=""></div><div id="toast" hidden></div>
-<script>
-/* ===== ตั้งค่า Supabase (Supabase settings) =====
-   ถ้ายังไม่ใส่ค่า เว็บจะเก็บข้อมูลในเบราว์เซอร์ของเครื่องนั้นเท่านั้น (โหมดทดลอง) */
-const SUPABASE_URL='PUT_SUPABASE_URL_HERE';   // เช่น https://abcdefgh.supabase.co
-const SUPABASE_KEY='PUT_SUPABASE_KEY_HERE';   // anon / publishable key
-const BUCKET='hms';
-/* ================================================= */
-let sb=null;
-const LOCALURL=new Map();
-const BLOB=id=>!id?'':(LOCALURL.get(id)||(sb?`${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${encodeURIComponent(id)}`:''));
-/* โหมดทดลอง: เก็บข้อมูลและไฟล์ใน IndexedDB ของเบราว์เซอร์ */
-function idbOpen(){return new Promise((ok,no)=>{const r=indexedDB.open('hms',1);
-  r.onupgradeneeded=()=>{const d=r.result;d.createObjectStore('docs',{keyPath:'path'}).createIndex('parent','parent');d.createObjectStore('files',{keyPath:'id'})};
-  r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)})}
-function idbTx(d,store,mode,fn){return new Promise((ok,no)=>{const t=d.transaction(store,mode),q=fn(t.objectStore(store));let out;
-  if(q)q.onsuccess=()=>{out=q.result};t.oncomplete=()=>ok(out);t.onerror=()=>no(t.error);t.onabort=()=>no(t.error)})}
-async function makeLocal(){
-  const d=await idbOpen();
-  (await idbTx(d,'files','readonly',s=>s.getAll())).forEach(f=>LOCALURL.set(f.id,URL.createObjectURL(f.blob)));
-  const subs=new Map(),kick=p=>{const s=subs.get(p);if(s)s.forEach(f=>f())};
-  return{
-    db:{doc(path){return{
-        async set(data){await idbTx(d,'docs','readwrite',s=>s.put({path,parent:parentOf(path),data}));kick(parentOf(path))},
-        async delete(){await idbTx(d,'docs','readwrite',s=>s.delete(path));kick(parentOf(path))}}},
-      collection(parent){return{onSnapshot(cb,onErr){let alive=true;
-        const run=async()=>{if(!alive)return;try{const rows=await idbTx(d,'docs','readonly',s=>s.index('parent').getAll(parent));if(alive)cb({docs:rows.map(r=>({id:r.path.split('/').pop(),data:()=>r.data}))})}catch(e){if(alive&&onErr)onErr(e)}};
-        if(!subs.has(parent))subs.set(parent,new Set());subs.get(parent).add(run);run();
-        return()=>{alive=false;const s=subs.get(parent);if(s)s.delete(run)}}}}},
-    assets:{
-      async upload(blob){const id='l'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);await idbTx(d,'files','readwrite',s=>s.put({id,blob}));LOCALURL.set(id,URL.createObjectURL(blob));return{id}},
-      async delete(id){await idbTx(d,'files','readwrite',s=>s.delete(id));const u=LOCALURL.get(id);if(u){URL.revokeObjectURL(u);LOCALURL.delete(id)}}}
-  }}
-const parentOf=p=>p.split('/').slice(0,-1).join('/');
-function makeDb(){
-  const subs=new Map();let ch=null;
-  const kick=parent=>{const s=subs.get(parent);if(s)s.forEach(f=>f())};
-  function listen(){
-    if(ch)return;
-    ch=sb.channel('hms-docs').on('postgres_changes',{event:'*',schema:'public',table:'docs'},pl=>{
-      const p=(pl.new&&pl.new.path)||(pl.old&&pl.old.path);if(p)kick(parentOf(p))}).subscribe();
-  }
-  async function fetchCol(parent){
-    const{data,error}=await sb.from('docs').select('path,data').eq('parent',parent).limit(5000);if(error)throw error;
-    return data.map(r=>({id:r.path.split('/').pop(),data:()=>r.data}))}
-  return{
-    doc(path){return{
-      async set(data){const{error}=await sb.from('docs').upsert({path,parent:parentOf(path),data});if(error)throw error;kick(parentOf(path))},
-      async delete(){const{error}=await sb.from('docs').delete().eq('path',path);if(error)throw error;kick(parentOf(path))}}},
-    collection(parent){return{onSnapshot(cb,onErr){
-      let alive=true,busy=false,again=false,last=null,failed=false;
-      const run=async()=>{
-        if(!alive)return;if(busy){again=true;return}busy=true;
-        try{const docs=await fetchCol(parent),sg=JSON.stringify(docs.map(d=>[d.id,d.data()]));failed=false;if(alive&&sg!==last){last=sg;cb({docs})}}
-        catch(e){if(alive&&onErr&&!failed)onErr(e);failed=true}
-        busy=false;if(again){again=false;run()}};
-      if(!subs.has(parent))subs.set(parent,new Set());subs.get(parent).add(run);listen();run();
-      const iv=setInterval(run,15000),vis=()=>{if(!document.hidden)run()};document.addEventListener('visibilitychange',vis);
-      return()=>{alive=false;clearInterval(iv);document.removeEventListener('visibilitychange',vis);const s=subs.get(parent);if(s){s.delete(run);if(!s.size)subs.delete(parent)}}}}}
-  }
-}
-const assetsApi={
-  async upload(blob){
-    const t=blob.type||'application/octet-stream',ext={'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/gif':'gif','image/heic':'heic','application/pdf':'pdf'}[t]||'bin';
-    const id=Date.now().toString(36)+Math.random().toString(36).slice(2,10)+'.'+ext;
-    const{error}=await sb.storage.from(BUCKET).upload(id,blob,{contentType:t,cacheControl:'31536000',upsert:false});if(error)throw error;return{id}},
-  async delete(id){const{error}=await sb.storage.from(BUCKET).remove([id]);if(error)throw error}
-};
-function localDl(){return{async save({filename,data}){
-  const u=URL.createObjectURL(data),a=document.createElement('a');a.href=u;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),60000)}}}
-const CATS=['Structural (งานโครงสร้าง)','Architectural (งานสถาปัตย์)','Electrical (งานระบบไฟฟ้า)','Plumbing (งานระบบประปา/สุขาภิบาล)','Interior (งานตกแต่งภายใน)','Exterior (งานภายนอก/ภูมิทัศน์)'];
-const HINT=[["Rebar (เหล็กเส้น)", "Round bar RB (เหล็กเส้นกลม)", "Deformed bar DB (เหล็กข้ออ้อย)", "Wire mesh (เหล็กตะแกรง)", "Tie wire (ลวดผูกเหล็ก)", "Rebar spacer (ก้อนปูนรองเหล็ก)", "Concrete (คอนกรีต)", "Ready-mixed concrete (คอนกรีตผสมเสร็จ)", "Lean concrete (คอนกรีตหยาบ)", "Cement (ปูนซีเมนต์)", "Sand (ทราย)", "Gravel (หินย่อย)", "Formwork (ไม้แบบ)", "Steel formwork (แบบเหล็ก)", "Piles (เสาเข็ม)", "Spun pile (เสาเข็มสปัน)", "Pile cap (ฐานราก)", "Column (เสา)", "Beam (คาน)", "Slab (พื้น)", "Precast slab (พื้นสำเร็จรูป)", "Steel section (เหล็กรูปพรรณ)", "Roof truss (โครงหลังคา)", "Anchor bolt (พุก/สลักเกลียว)", "Waterproofing (กันซึม)", "Red clay brick (อิฐมอญแดง)", "Concrete block (อิฐบล็อกคอนกรีต)", "AAC lightweight block (อิฐมวลเบา AAC)", "Interlocking brick (อิฐประสาน)", "Hollow brick (อิฐโปร่ง)", "Brick wall mortar (ปูนก่อ)", "Reinforced concrete column (เสาเอ็น)", "Lintel beam (คานทับหลัง)", "Steel rebar stirrup (เหล็กปลอก)", "Rebar cage (เหล็กเสริมสำเร็จรูป)", "Concrete admixture (น้ำยาผสมคอนกรีต)", "Concrete curing compound (น้ำยาบ่มคอนกรีต)", "Bonding agent (น้ำยาประสานคอนกรีต)", "Non-shrink grout (กราวท์ไม่หดตัว)", "Steel plate (เหล็กแผ่น)", "Square tube (เหล็กกล่อง)", "H-beam (เหล็กเอชบีม)", "Angle bar (เหล็กฉาก)", "Sheet pile (เข็มพืด)", "Soil compaction fill (ทรายถมบดอัด)", "Waterproof membrane (แผ่นกันซึม)", "Bitumen sheet (แผ่นปิโตรเลียมกันซึม)"], ["Tiles (กระเบื้อง)", "Floor tiles (กระเบื้องปูพื้น)", "Wall tiles (กระเบื้องบุผนัง)", "Grout (ยาแนว)", "Brick (อิฐมอญ)", "Lightweight block (อิฐมวลเบา)", "Fiber cement board (แผ่นไฟเบอร์ซีเมนต์)", "Plaster (ปูนฉาบ)", "Primer (สีรองพื้น)", "Wall paint (สีทาอาคาร)", "Doors (ประตู)", "Windows (หน้าต่าง)", "Aluminum frame (วงกบอลูมิเนียม)", "Glass (กระจก)", "Door lock (กุญแจประตู)", "Roof tiles (กระเบื้องหลังคา)", "Metal sheet (เมทัลชีท)", "Gutter (รางน้ำ)", "Ceiling (ฝ้าเพดาน)", "Gypsum board (ยิปซัมบอร์ด)", "Insulation (ฉนวนกันความร้อน)", "Stair (บันได)", "Handrail (ราวบันได)", "Sealant (ซิลิโคน)", "Exterior paint (สีภายนอก)", "Interior paint (สีภายใน)", "Waterproof paint (สีกันซึม)", "Putty (สีโป๊ว)", "Wood stain (สีย้อมไม้)", "Metal paint (สีทาเหล็ก)", "Anti-rust paint (สีกันสนิม)", "Roof paint (สีทาหลังคา)", "Plaster mortar (ปูนฉาบสำเร็จรูป)", "Tile adhesive (กาวซีเมนต์ติดกระเบื้อง)", "Granite tiles (กระเบื้องแกรนิตโต้)", "Ceramic tiles (กระเบื้องเซรามิก)", "Natural stone (หินธรรมชาติ)", "Marble (หินอ่อน)", "Wood door (ประตูไม้)", "Steel door (ประตูเหล็ก)", "UPVC door (ประตู UPVC)", "Sliding window (หน้าต่างบานเลื่อน)", "Hinge (บานพับ)", "Door handle (มือจับประตู)", "Window screen (มุ้งลวด)", "Roof sheet (กระเบื้องลอนคู่)", "Roof ridge (ครอบสันหลังคา)", "Roof batten (ตะแกรงเหล็กรับหลังคา)", "Fascia board (ไม้เชิงชาย)", "T-bar ceiling (ฝ้าทีบาร์)", "Wood plank (ไม้ระแนง)", "Steel handrail (ราวเหล็ก)", "Glass railing (ราวกระจก)"], ["Wire (สายไฟ)", "THW wire (สาย THW)", "VAF cable (สาย VAF)", "Network cable (สาย LAN)", "Conduit (ท่อร้อยสาย)", "Cable tray (รางสายไฟ)", "Junction box (กล่องพักสาย)", "Distribution board (ตู้ไฟ)", "Circuit breaker (เบรกเกอร์)", "Earth leakage breaker (เครื่องตัดไฟรั่ว)", "Grounding rod (หลักดิน)", "Switch (สวิตช์)", "Outlet (ปลั๊กไฟ)", "Light fixture (โคมไฟ)", "LED downlight (ดาวน์ไลท์ LED)", "Electric meter (มิเตอร์ไฟ)", "Ceiling fan (พัดลมเพดาน)", "Air conditioner (เครื่องปรับอากาศ)", "CCTV (กล้องวงจรปิด)", "Wire clip (กิ๊บจับสาย)", "Wire nut (ตัวต่อสาย)", "PVC conduit (ท่อ PVC ร้อยสาย)", "Metal conduit (ท่อเหล็ก EMT)", "Flexible conduit (ท่ออ่อน)", "Main switch (เมนสวิตช์)", "Surge protector (เครื่องป้องกันฟ้าผ่า)", "Lightning rod (เสาล่อฟ้า)", "Solar panel (แผงโซลาร์)", "Inverter (อินเวอร์เตอร์)", "Doorbell (กริ่งประตู)", "Intercom (อินเตอร์คอม)", "Smoke detector (เครื่องตรวจจับควัน)", "Exhaust fan (พัดลมระบายอากาศ)", "TV antenna (เสาอากาศทีวี)"], ["PVC pipe (ท่อ PVC)", "PPR pipe (ท่อ PPR)", "HDPE pipe (ท่อ HDPE)", "Water supply pipe (ท่อน้ำดี)", "Drain pipe (ท่อน้ำทิ้ง)", "Pipe fittings (ข้อต่อท่อ)", "Valve (วาล์ว)", "Gate valve (ประตูน้ำ)", "Sanitary ware (สุขภัณฑ์)", "Toilet (ชักโครก)", "Wash basin (อ่างล้างหน้า)", "Faucet (ก๊อกน้ำ)", "Shower (ฝักบัว)", "Floor drain (ตะแกรงระบายน้ำ)", "Water tank (ถังเก็บน้ำ)", "Water pump (ปั๊มน้ำ)", "Water heater (เครื่องทำน้ำอุ่น)", "Septic tank (ถังบำบัด)", "Grease trap (ถังดักไขมัน)", "Water meter (มาตรน้ำ)", "PVC cement (กาวทาท่อ)", "Teflon tape (เทปพันเกลียว)", "Pipe clamp (เข็มขัดรัดท่อ)", "Flexible hose (สายน้ำดี)", "Check valve (เช็ควาล์ว)", "Ball valve (บอลวาล์ว)", "Pressure tank (ถังแรงดัน)", "Solar water heater (เครื่องทำน้ำร้อนพลังงานแสงอาทิตย์)", "Kitchen sink (ซิงค์ล้างจาน)", "Bidet spray (สายฉีดชำระ)", "Cleanout (ฝาท่อกำจัดสิ่งอุดตัน)", "Vent pipe (ท่ออากาศ)", "Rain water pipe (ท่อน้ำฝน)", "Downspout (ท่อระบายน้ำฝน)", "Water filter (เครื่องกรองน้ำ)"], ["Ceiling (ฝ้าเพดาน)", "Flooring (พื้น)", "Laminate floor (พื้นลามิเนต)", "Vinyl floor (พื้นไวนิล)", "Parquet (ปาร์เก้)", "Wallpaper (วอลเปเปอร์)", "Wall panel (ผนังตกแต่ง)", "Interior paint (สีภายใน)", "Interior door (ประตูภายใน)", "Built-in (บิลท์อิน)", "Kitchen cabinet (ตู้ครัว)", "Countertop (ท็อปเคาน์เตอร์)", "Wardrobe (ตู้เสื้อผ้า)", "Curtain (ผ้าม่าน)", "Blinds (มู่ลี่)", "Skirting (บัวพื้น)", "Cornice (บัวฝ้า)", "Mirror (กระจกเงา)", "Decorative lighting (ไฟตกแต่ง)", "Tile adhesive (กาวติดกระเบื้อง)", "Wood floor (พื้นไม้จริง)", "SPC floor (พื้น SPC)", "Carpet (พรมปูพื้น)", "PVC wall panel (ผนัง PVC)", "Wood veneer (ไม้วีเนียร์)", "Plywood (ไม้อัด)", "MDF board (ไม้ MDF)", "Melamine board (แผ่นเมลามีน)", "Sink cabinet (ตู้ใต้ซิงค์)", "Door lock set (ชุดกุญแจประตูภายใน)", "Handle (มือจับ)", "Shelf (ชั้นวางของ)", "Ceiling light (โคมไฟเพดาน)", "Wall light (ไฟผนัง)"], ["Fence (รั้ว)", "Gate (ประตูรั้ว)", "Paving (พื้นลาน)", "Concrete pavement (ถนนคอนกรีต)", "Stepping stone (หินปูทางเดิน)", "Carport (โรงจอดรถ)", "Pergola (ซุ้ม/ระแนง)", "Retaining wall (กำแพงกันดิน)", "Drainage (รางระบายน้ำ)", "Manhole (บ่อพัก)", "Plants (ต้นไม้)", "Lawn (หญ้า)", "Fill soil (ดินถม)", "Garden light (ไฟสวน)", "Sprinkler (ระบบรดน้ำ)", "Exterior paint (สีภายนอก)", "Mailbox (ตู้จดหมาย)", "Swimming pool (สระว่ายน้ำ)", "Exterior wall paint (สีทาผนังภายนอก)", "Weather-resistant paint (สีทนแดดทนฝน)", "Brick pavement (พื้นอิฐตัวหนอน)", "Pebble wash (พื้นหินล้าง)", "Stamped concrete (พื้นพิมพ์ลาย)", "Wire fence (รั้วลวดหนาม)", "Steel fence (รั้วเหล็ก)", "Concrete fence (รั้วคอนกรีตสำเร็จรูป)", "Sliding gate (ประตูรั้วเลื่อน)", "Gate motor (มอเตอร์ประตู)", "Roof for carport (หลังคาโรงจอดรถ)", "Rain gutter (รางน้ำฝน)", "Drain grating (ตะแกรงรางระบายน้ำ)", "Garden soil (ดินปลูกต้นไม้)", "Gravel (กรวดโรยสวน)", "Tree (ไม้ยืนต้น)", "Shrub (ไม้พุ่ม)", "Artificial grass (หญ้าเทียม)"]];
-const S={proj:null,cat:-1,tab:'photos',projects:[],photos:[],plans:[],subs:[]};
-let db,assets;
-const $=s=>document.querySelector(s);
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const fmt=(t,o)=>t?new Date(t).toLocaleString('th-TH',o):'-';
-function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>t.hidden=true,3200)}
-async function shrink(f){if(!f.type.startsWith('image/')&&!/\.(hei[cf])$/i.test(f.name))return f;
-  try{let b;try{b=await createImageBitmap(f,{imageOrientation:'from-image'})}catch(e){b=await createImageBitmap(f)}
-    const k=Math.min(1,1600/Math.max(b.width,b.height)),c=document.createElement('canvas');c.width=Math.round(b.width*k);c.height=Math.round(b.height*k);
-    const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(b,0,0,c.width,c.height);
-    const r=await new Promise(r=>c.toBlob(r,'image/jpeg',.82));if(!r)throw 0;return r}
-  catch(e){if(/hei[cf]/i.test(f.type+f.name))throw new Error('อ่านรูป HEIC ไม่ได้ กรุณาเปลี่ยนเป็น JPG ก่อน');return f}}
-function nowLocal(){const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,16)}
-
-function home(){
-  S.subs.forEach(f=>f());S.subs=[];S.proj=null;
-  $('#app').innerHTML=`<section class="wrap"><h2>My Projects (โครงการของฉัน)</h2><button class="btn bigbtn" data-a="newp">+ Create Project (สร้างโครงการ)</button><div id="plist" class="grid"></div></section>`;
-  drawProjects();
-}
-let pend;
-const coverUrl=p=>p&&p.cover?BLOB(p.cover):'';
-function drawCov(u){const w=$('#covw');if(w)w.innerHTML=`<div class="cov">${u?`<img src="${esc(u)}" alt="">`:'<span class="mu sm">No photo (ยังไม่มีรูป)</span>'}</div>`}
-function editForm(){
-  const p=S.proj,m=$('#modal');m.hidden=false;pend=undefined;
-  m.innerHTML=`<div class="box wide"><h3>Edit project (แก้ไขรายละเอียดโครงการ)</h3>
-  <label>Project name (ชื่อโครงการ)</label><input id="en" maxlength="60" value="${esc(p.name)}">
-  <label>Project photo (รูปโครงการ)</label><div id="covw"></div><input id="pcov" type="file" accept="image/*"><div class="row2"><button class="btn ghost" data-a="covrm">Remove photo (ลบรูป)</button></div>
-  <label>Owner name (ชื่อเจ้าของโครงการ)</label><input id="eo" maxlength="80" value="${esc(p.owner||'')}">
-  <label>Contractor name (ชื่อผู้รับเหมา)</label><input id="et" maxlength="80" value="${esc(p.contractor||'')}">
-  <label>Site location (สถานที่ก่อสร้าง)</label><input id="el" maxlength="120" value="${esc(p.location||'')}">
-  <div class="row"><button class="btn ghost" data-a="mclose">← Back (กลับ)</button><button class="btn" data-a="editok">Save (บันทึก)</button></div></div>`;
-  drawCov(coverUrl(p));
-}
-async function saveEdit(b){
-  const n=$('#en').value.trim();if(!n)return toast('กรุณาตั้งชื่อโครงการ');
-  b.disabled=true;
-  try{
-    let cover=S.proj.cover||null;
-    if(pend!==undefined){
-      if(cover&&assets){try{await assets.delete(cover)}catch(e){}}
-      cover=null;if(pend){cover=(await assets.upload(pend)).id}
-    }
-    const{id,...old}=S.proj,data={...old,name:n,owner:$('#eo').value.trim(),contractor:$('#et').value.trim(),location:$('#el').value.trim(),cover};
-    await db.doc('projects/'+id).set(data);
-    S.proj={id,...data};drawBar();$('#modal').hidden=true;toast('Saved (บันทึกเรียบร้อย)');
-  }catch(e){toast('บันทึกไม่สำเร็จ');b.disabled=false}
-}
-const readTs=id=>+(LS.get('hms_read_'+id)||0);
-function updBadge(){
-  const b=document.querySelector('.chatopen');if(!b||!S.proj)return;
-  const t=readTs(S.proj.id),n=S.chat.filter(m=>m.u!==UID&&(m.at||0)>t).length,c=b.querySelector('.cbadge');
-  c.hidden=!n;c.textContent=n>99?'99+':n;b.classList.toggle('unread',n>0);
-  if(n>(updBadge.prev||0)){b.classList.remove('pop');void b.offsetWidth;b.classList.add('pop')}
-  updBadge.prev=n}
-function chatSeen(){
-  if(S.proj&&S.tab==='chat'&&S.chat.length)LS.set('hms_read_'+S.proj.id,String(Math.max(...S.chat.map(m=>m.at||0))));
-  updBadge()}
-function drawBar(){
-  const p=S.proj;$('#bar').innerHTML=`<div class="pcard"><div class="ptop">${p.cover?`<img class="bthumb" src="${esc(coverUrl(p))}" alt="">`:''}<div class="pi"><b>${esc(p.name)}</b>${info(p)}</div></div><button class="btn chatopen" data-a="chat"><span>💬 Chat (แชท)</span><span class="cbadge" hidden></span></button><div class="pbtn"><button class="btn ghost" data-a="back">← Back (กลับ)</button><button class="btn ghost" data-a="editp">Edit (แก้ไข)</button><button class="btn ghost danger" data-a="delp">Delete project (ลบโครงการ)</button></div></div>`;
-  updBadge.prev=0;updBadge();
-}
-function newForm(){
-  const m=$('#modal');m.hidden=false;
-  m.innerHTML=`<div class="box wide"><h3>New Project (สร้างโครงการใหม่)</h3>
-  <label>Project name (ชื่อโครงการ)</label><input id="pn" maxlength="60" placeholder="เช่น บ้านคุณสมชาย ซอยลาดพร้าว 71">
-  <label>Project code, 4 digits (รหัสโครงการ 4 หลัก)</label><input id="pc" type="tel" inputmode="numeric" maxlength="4" placeholder="0000">
-  <label>Project photo (รูปโครงการ)</label><div id="covw"></div><input id="pcov" type="file" accept="image/*"><div class="row2"><button class="btn ghost" data-a="covrm">Remove photo (ลบรูป)</button></div>
-  <label>Owner name (ชื่อเจ้าของโครงการ)</label><input id="po" maxlength="80" placeholder="เช่น คุณสมชาย ใจดี">
-  <label>Contractor name (ชื่อผู้รับเหมา)</label><input id="pt" maxlength="80" placeholder="เช่น บริษัท รับเหมา จำกัด">
-  <label>Site location (สถานที่ก่อสร้าง)</label><input id="pl" maxlength="120" placeholder="เช่น ซอยลาดพร้าว 71 กรุงเทพฯ">
-  <div class="row"><button class="btn ghost" data-a="mclose">← Back (กลับ)</button><button class="btn" data-a="create">Create<br>(สร้างโครงการ)</button></div></div>`;
-  pend=null;drawCov(null);$('#pn').focus();
-}
-const info=p=>[['Owner (เจ้าของ)',p.owner],['Contractor (ผู้รับเหมา)',p.contractor],['Site (สถานที่)',p.location]].map(x=>`<span class="mu sm">${x[0]}: ${x[1]?esc(x[1]):'-'}</span>`).join('');
-function drawProjects(){
-  const el=$('#plist');if(!el)return;
-  el.innerHTML=S.projects.length?S.projects.map(p=>`<div class="proj">${p.cover?`<img class="thumb" loading="lazy" src="${esc(coverUrl(p))}" alt="">`:'<div class="thumb nophoto">No photo (ไม่มีรูป)</div>'}<b>${esc(p.name)}</b>${info(p)}<span class="mu sm">สร้างเมื่อ ${fmt(p.createdAt,{dateStyle:'medium'})}</span><button class="btn selbtn" data-a="open" data-id="${esc(p.id)}">Select project (เลือกโครงการ)</button></div>`).join(''):'<p class="mu empty" style="grid-column:1/-1">No projects yet. Tap Create Project to start (ยังไม่มีโครงการ กดปุ่มสร้างโครงการเพื่อเริ่มต้น)</p>';
-}
-function gate(id){
-  const p=S.projects.find(x=>x.id===id);if(!p)return;const m=$('#modal');m.hidden=false;
-  m.innerHTML=`<div class="box"><h3>${esc(p.name)}</h3><p class="mu">ใส่รหัส 4 หลักเพื่อเข้าโครงการ</p><input id="gc" type="tel" inputmode="numeric" maxlength="4" placeholder="0000"><p class="err" id="ge"></p>
-  <div class="row"><button class="btn ghost" data-a="mclose">← Back (กลับ)</button><button class="btn" data-a="gok" data-id="${esc(id)}">Open<br>(เข้าสู่โครงการ)</button></div></div>`;
-  $('#gc').focus();
-}
-function enter(p){
-  S.proj=p;S.cat=-1;S.tab='photos';S.photos=[];S.plans=[];S.chat=[];S.role=loadRole(p.id);S.ready={photos:false,plans:false,chat:false};S.sig={};$('#modal').hidden=true;
-  S.subs=['photos','plans','chat'].map(k=>db.collection(`projects/${p.id}/${k}`).onSnapshot(q=>{const rows=q.docs.map(d=>({id:d.id,...d.data()})),sg=JSON.stringify(rows);S.ready[k]=true;if(S.sig[k]===sg)return;S.sig[k]=sg;if(k==='chat')rows.sort((a,b)=>(a.at||0)-(b.at||0));S[k]=rows;if(k==='chat'){drawMsgs();chatSeen();return}drawCats();drawList()},()=>toast('โหลดข้อมูลไม่สำเร็จ')));
-  $('#app').innerHTML=`<div class="bar" id="bar"></div>
-  <div class="tabs" id="tabs"></div><div class="layout"><nav id="cats"></nav><main><div id="form"></div><div id="list"></div></main></div>`;
-  drawBar();drawTabs();drawCats();drawForm();drawList();
-}
-const LS={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
-const UID=(()=>{let u=LS.get('hms_uid');if(!u){u=Math.random().toString(36).slice(2)+Date.now().toString(36);LS.set('hms_uid',u)}return u})();
-const ROLES={owner:['Homeowner (เจ้าของบ้าน)','#2a7f9e'],contractor:['Contractor (ผู้รับเหมา)','#c98a1f'],other:['Other (อื่นๆ)','#667a92']};
-function loadRole(id){try{const r=JSON.parse(LS.get('hms_role_'+id)||'null');return r&&ROLES[r.r]?r:null}catch(e){return null}}
-function drawChat(){
-  const f=$('#form');if(!f)return;
-  const back='<button class="btn ghost" data-a="chatback">← Back (กลับ)</button>';
-  if(!S.role){
-    f.innerHTML=`<div class="chat"><div class="chtop">${back}</div><h3 class="ch-t">Who are you? (คุณคือใคร)</h3><p class="mu sm">Choose your role to join this project's chat (เลือกบทบาทก่อนเข้าแชทของโครงการนี้)</p><label>Your name – optional (ชื่อของคุณ – ไม่บังคับ)</label><input id="cn" maxlength="30"><div class="rolegrid">${Object.entries(ROLES).map(([k,v])=>`<button class="btn ghost" data-a="role" data-r="${k}">${v[0].replace(' (','<br>(')}</button>`).join('')}</div></div>`;return}
-  f.innerHTML=`<div class="chat"><div class="chtop">${back}<button class="btn ghost" data-a="crole">Change role<br>(เปลี่ยนบทบาท)</button></div><div class="chwho"><span class="rtag" style="background:${ROLES[S.role.r][1]}">${ROLES[S.role.r][0]}</span>${S.role.n?`<b>${esc(S.role.n)}</b>`:''}</div><div id="cmsgs" class="cmsgs"></div><div class="csend"><textarea id="ct" maxlength="1000" placeholder="Type a message… (พิมพ์ข้อความ)"></textarea><button class="btn" data-a="csend">Send<br>(ส่ง)</button></div></div>`;
-  drawMsgs(true)}
-function drawMsgs(force){
-  const el=$('#cmsgs');if(!el)return;
-  const near=el.scrollHeight-el.scrollTop-el.clientHeight<80,rows=S.chat.slice(-200);
-  el.innerHTML=(S.chat.length>200?'<p class="mu sm" style="text-align:center">Showing latest 200 (แสดง 200 ข้อความล่าสุด)</p>':'')+(rows.length?rows.map(m=>{const r=ROLES[m.role]||ROLES.other,mine=m.u===UID;
-    return `<div class="msg${mine?' me':''}"><div class="mh"><span class="rtag" style="background:${r[1]}">${r[0]}</span>${m.name?`<b>${esc(m.name)}</b>`:''}<time>${fmt(m.at,{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</time>${mine?`<button class="cdel" data-a="cdel" data-id="${esc(m.id)}">✕</button>`:''}</div><div class="mt">${esc(m.text)}</div></div>`}).join(''):'<p class="mu" style="text-align:center;margin:auto">No messages yet (ยังไม่มีข้อความ)</p>');
-  if(force||near)el.scrollTop=el.scrollHeight}
-async function chatSend(b){
-  const t=$('#ct'),v=t&&t.value.trim();if(!v||!S.role||!S.proj)return;b.disabled=true;
-  const id='m'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
-  try{await db.doc(`projects/${S.proj.id}/chat/${id}`).set({role:S.role.r,name:S.role.n||'',text:v,u:UID,at:Date.now()});t.value='';drawMsgs(true)}
-  catch(e){toast('ส่งข้อความไม่สำเร็จ')}
-  b.disabled=false}
-function drawTabs(){$('#tabs').innerHTML=[['photos','Site Photos (รูปวัสดุหน้างาน)'],['plans','Drawings (แบบก่อสร้าง)']].map(([k,l])=>`<button class="${S.tab===k?'on':''}" data-a="tab" data-t="${k}">${l}</button>`).join('')}
-function drawCats(){
-  const one=S.tab!=='photos';$('#cats').style.display=one?'none':'';const lay=document.querySelector('.layout');if(lay)lay.classList.toggle('one',one);if(one)return;
-  const n=S[S.tab];
-  $('#cats').innerHTML=[`<button class="${S.cat<0?'on':''}" data-a="cat" data-i="-1">All (ทั้งหมด) (${n.length})</button>`].concat(CATS.map((c,i)=>`<button class="${S.cat===i?'on':''}" data-a="cat" data-i="${i}">${c} (${n.filter(x=>x.cat===i).length})</button>`)).join('');
-}
-let picked=[],mp=[];
-function clearMp(){mp.forEach(p=>URL.revokeObjectURL(p.u));mp=[]}
-function drawPv2(){const el=$('#pv2');if(!el)return;el.innerHTML=mp.map((p,i)=>`<div class="pvi"><img src="${p.u}" alt=""><button type="button" data-a="pvrm2" data-i="${i}" aria-label="Remove (ลบ)">✕</button></div>`).join('')+(mp.length?`<div class="pvc mu sm">Selected ${mp.length} (เลือกแล้ว ${mp.length} รูป)</div>`:'')}
-function drawPv(){const el=$('#pv');if(!el)return;
-  el.innerHTML=picked.length?picked.map((p,i)=>`<div class="pvi">${p.f.type.startsWith('image/')?`<img src="${p.u}" alt="">`:'<span>PDF</span>'}<button type="button" data-a="pvrm" data-i="${i}" aria-label="Remove (ลบ)">✕</button></div>`).join('')+`<div class="pvc mu sm">Selected ${picked.length} (เลือกแล้ว ${picked.length} ไฟล์) · pick again to add more (เลือกเพิ่มได้อีก)</div>`:''}
-function drawForm(){
-  picked.forEach(p=>URL.revokeObjectURL(p.u));picked=[];
-  if(S.tab==='chat'){drawChat();return}
-  const ph=S.tab==='photos',c=S.cat<0?0:S.cat;
-  $('#form').innerHTML=`<details class="card"><summary class="btn">+ ${ph?'Add Photos (เพิ่มรูปวัสดุ)':'Attach Drawing (แนบแบบก่อสร้าง)'}</summary>
-  ${ph?`<label>Category (หมวดงาน)</label><select id="fc" data-a="fcsel">${CATS.map((x,i)=>`<option value="${i}" ${i===c?'selected':''}>${x}</option>`).join('')}</select>`:''}
-  <label>${ph?'Material (รายการวัสดุ)':'Drawing name (ชื่อแบบ)'}</label>${ph?`<div class="combo"><input id="fi" maxlength="80" autocomplete="off"><button type="button" class="cbtn" data-a="cbtn" aria-label="List (รายการ)"></button><div id="cl" class="clist" hidden></div></div>`:`<input id="fi" maxlength="80" autocomplete="off">`}
-  ${ph?`<label>Date & time (วันและเวลา)</label><input id="fd" type="datetime-local" value="${nowLocal()}"><label>Remark (หมายเหตุ)</label><textarea id="fn" placeholder="เช่น ขนาด ยี่ห้อ ล็อตที่ส่งมา ตำแหน่งที่ใช้"></textarea>`:''}
-  <label>${ph?'Photos (รูปถ่ายวัสดุ เลือกได้หลายรูป)':'File (ไฟล์แบบ รูปภาพหรือ PDF)'}</label><input id="ff" type="file" multiple accept="${ph?'image/*':'image/*,application/pdf'}"><div id="pv" class="pv"></div>
-  <div class="frow"><button class="btn ghost" data-a="formback">← Back (กลับ)</button><button class="btn" id="sv" data-a="save">Save (บันทึก)</button></div></details>`;
-  hints();
-}
-function hints(){const c=$('#cl');if(c)c.hidden=true}
-function showList(force){const sel=$('#fc'),cl=$('#cl'),fi=$('#fi');if(!sel||!cl||!fi)return;
-  const q=force===true?'':fi.value.trim().toLowerCase(),items=HINT[+sel.value].filter(h=>!q||h.toLowerCase().includes(q));
-  cl.innerHTML=items.map(h=>`<button type="button" class="copt" data-a="copt" data-v="${esc(h)}">${esc(h)}</button>`).join('');cl.hidden=!items.length}
-const imgIds=x=>x.assets&&x.assets.length?x.assets:[x.asset];
-const media=x=>{const ids=imgIds(x),one=id=>`<img loading="lazy" alt="${esc(x.item)}" src="${esc(BLOB(id))}" data-a="zoom" data-src="${esc(BLOB(id))}">`;
-  if(ids.length<2)return one(ids[0]);
-  return `<div class="gal"><div class="gtrack">${ids.map(one).join('')}</div><button type="button" class="gnav gl" data-a="gprev" aria-label="Previous (ก่อนหน้า)">‹</button><button type="button" class="gnav gr" data-a="gnext" aria-label="Next (ถัดไป)">›</button><span class="gcnt">1/${ids.length}</span></div>`};
-function drawList(){
-  const el=$('#list');if(!el)return;
-  if(S.tab==='chat'){el.innerHTML='';return}
-  const keep={};el.querySelectorAll('.ph[data-id]').forEach(c=>{const t=c.querySelector('.gtrack');if(t&&t.scrollLeft)keep[c.dataset.id]=t.scrollLeft});
-  drawList.keep=keep;
-  const ph=S.tab==='photos';
-  const rows=S[S.tab].filter(x=>!ph||S.cat<0||x.cat===S.cat).sort((a,b)=>(b.at||0)-(a.at||0));
-  if(!rows.length){el.innerHTML='<p class="mu empty">ยังไม่มีรายการในหมวดนี้</p>';return}
-  const card=x=>`<div class="ph" data-id="${esc(x.id)}">${x.kind==='pdf'?`<div class="pdf">PDF</div>`:media(x)}
-  <div class="in">${ph&&CATS[x.cat]?`<span class="tag">${CATS[x.cat]}</span>`:''}<b>${esc(x.item||'(ไม่ระบุชื่อ)')}</b><time>${fmt(x.at,{dateStyle:'medium',timeStyle:'short'})}</time>${x.note?`<p>${esc(x.note)}</p>`:''}${x.kind==='pdf'?pdfBtns(x)+renBtn(x,ph):imgBtns(x,ph)}<button class="x xc" data-a="del" data-id="${esc(x.id)}">Delete (ลบ)</button></div></div>`;
-  if(!ph){el.innerHTML=`<div class="grid">${rows.map(card).join('')}</div>`;restoreG(el);return}
-  let h='',d='';
-  rows.forEach(x=>{const k=fmt(x.at,{dateStyle:'full'});if(k!==d){h+=(d?'</div>':'')+`<div class="day">${k}</div><div class="grid">`;d=k}h+=card(x)});
-  el.innerHTML=h+'</div>';restoreG(el);
-}
-function restoreG(el){const k=drawList.keep||{};for(const id in k){const c=el.querySelector(`.ph[data-id="${CSS.escape(id)}"] .gtrack`);if(c)c.scrollLeft=k[id]}}
-const pdfBtns=x=>`<div class="row2"><button class="btn ghost" data-a="viewpdf" data-id="${esc(x.id)}">View<br>(เปิดดู)</button><button class="btn ghost" data-a="dlpdf" data-id="${esc(x.id)}">Download<br>(ดาวน์โหลด)</button></div>`;
-async function dlPdf(x){
-  try{const dm=await localDl();if(!dm)return toast('ดาวน์โหลดไม่ได้ในหน้านี้');
-    const b=await (await fetch(BLOB(x.asset))).blob();
-    let n=x.fname||((x.item||'drawing')+'.pdf');if(!/\.pdf$/i.test(n))n+='.pdf';
-    await dm.save({filename:n,data:b});toast('Saved (บันทึกเรียบร้อย)')}
-  catch(e){if(!e||e.code!=='declined')toast('ดาวน์โหลดไม่สำเร็จ')}
-}
-function loadJs(u){return new Promise((ok,no)=>{const e=document.createElement('script');e.src=u;e.onload=ok;e.onerror=no;document.head.appendChild(e)})}
-async function pdfLib(){
-  if(window.pdfjsLib)return window.pdfjsLib;
-  const b='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
-  await loadJs(b+'pdf.min.js');await loadJs(b+'pdf.worker.min.js');
-  window.pdfjsLib.GlobalWorkerOptions.workerSrc=b+'pdf.worker.min.js';return window.pdfjsLib;
-}
-async function pdfView(x){
-  const m=$('#modal');m.hidden=false;const tok=pdfView.tok=(pdfView.tok||0)+1;
-  m.innerHTML=`<div class="box xl"><h3>${esc(x.item||x.fname||'PDF')}</h3><div id="pgs" class="pgs"><p class="mu">Loading… (กำลังโหลด)</p></div><div class="row2"><button class="btn ghost" data-a="mclose">← Back (กลับ)</button><button class="btn" data-a="dlpdf" data-id="${esc(x.id)}">Download<br>(ดาวน์โหลด)</button></div></div>`;
-  const box=$('#pgs');
-  try{
-    const lib=await pdfLib(),buf=await (await fetch(BLOB(x.asset))).arrayBuffer(),doc=await lib.getDocument({data:buf}).promise;
-    box.innerHTML='';const w=Math.max(280,box.clientWidth-4),dpr=Math.min(1.5,window.devicePixelRatio||1);
-    for(let n=1;n<=doc.numPages;n++){
-      if(pdfView.tok!==tok)return;
-      const pg=await doc.getPage(n),v0=pg.getViewport({scale:1}),sc=w/v0.width,v0b=pg.getViewport({scale:sc*dpr}),v=v0b.width*v0b.height>6e6?pg.getViewport({scale:sc*dpr*Math.sqrt(6e6/(v0b.width*v0b.height))}):v0b,c=document.createElement('canvas');
-      c.width=Math.floor(v.width);c.height=Math.floor(v.height);c.style.width='100%';box.appendChild(c);
-      await pg.render({canvasContext:c.getContext('2d'),viewport:v}).promise;pg.cleanup();
-    }
-  }catch(e){box.innerHTML='<p class="err">เปิดดูไฟล์นี้ไม่ได้ ลองกดดาวน์โหลดแทน (Cannot preview this file, try Download)</p>'}
-}
-const renLbl=ph=>ph?'Edit name<br>(แก้ไขชื่อรูป)':'Edit name<br>(แก้ไขชื่อไฟล์)';
-const renBtn=(x,ph)=>`<div class="row2"><button class="btn ghost" data-a="renm" data-id="${esc(x.id)}">${renLbl(ph)}</button></div>`;
-const allBtn=x=>imgIds(x).length>1?`<div class="row2"><button class="btn ghost" data-a="dlall" data-id="${esc(x.id)}">Download all ${imgIds(x).length} photos<br>(ดาวน์โหลดทั้งหมด ${imgIds(x).length} รูป)</button></div>`:'';
-const imgBtns=(x,ph)=>`<div class="row2"><button class="btn ghost" data-a="renm" data-id="${esc(x.id)}">${renLbl(ph)}</button><button class="btn ghost" data-a="dlimg" data-id="${esc(x.id)}">Download<br>(ดาวน์โหลด)</button></div>${ph?`<div class="row2"><button class="btn ghost" data-a="addph" data-id="${esc(x.id)}">+ Add photos<br>(เพิ่มรูป)</button></div>`:''}`;
-async function dlAll(x,b){
-  b.disabled=true;
-  try{const dm=await localDl();if(!dm)return toast('ดาวน์โหลดไม่ได้ในหน้านี้');
-    if(!window.JSZip)await loadJs('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
-    const z=new JSZip(),M={'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/gif':'gif'},ids=imgIds(x);
-    let base=(x.item||x.fname||'photos').replace(/[\\/:*?"<>|]+/g,'_').replace(/\.(jpe?g|png|webp|gif|zip)$/i,'').trim()||'photos';
-    for(let i=0;i<ids.length;i++){const bl=await (await fetch(BLOB(ids[i]))).blob();z.file(`${base}_${i+1}.${M[bl.type]||'jpg'}`,bl)}
-    const out=await z.generateAsync({type:'blob'});
-    await dm.save({filename:base+'.zip',data:out});toast('Saved (บันทึกเรียบร้อย)')}
-  catch(e){if(!e||e.code!=='declined')toast('ดาวน์โหลดไม่สำเร็จ')}
-  b.disabled=false;
-}
-async function dlImg(x,id,k){
-  try{const dm=await localDl();if(!dm)return toast('ดาวน์โหลดไม่ได้ในหน้านี้');
-    const b=await (await fetch(BLOB(id||x.asset))).blob(),M={'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/gif':'gif'};
-    const ext=M[b.type]||((x.fname||'').match(/\.(jpe?g|png|webp|gif)$/i)||[,'jpg'])[1].toLowerCase();
-    let n=(x.item||x.fname||'photo').replace(/[\\/:*?"<>|]+/g,'_').trim()||'photo';
-    if(!/\.(jpe?g|png|webp|gif)$/i.test(n))n+=(k>0?'_'+(k+1):'')+'.'+ext;
-    await dm.save({filename:n,data:b});toast('Saved (บันทึกเรียบร้อย)')}
-  catch(e){if(!e||e.code!=='declined')toast('ดาวน์โหลดไม่สำเร็จ')}
-}
-function renForm(x){const m=$('#modal');m.hidden=false;
-  m.innerHTML=`<div class="box"><h3>${S.tab==='photos'?'Edit photo name (แก้ไขชื่อรูป)':'Edit file name (แก้ไขชื่อไฟล์)'}</h3><label>${S.tab==='photos'?'Photo name (ชื่อรูป)':'Drawing name (ชื่อแบบ)'}</label><input id="rn" maxlength="80" value="${esc(x.item||'')}"><div class="row"><button class="btn ghost" data-a="mclose">← Back (กลับ)</button><button class="btn" data-a="renok" data-id="${esc(x.id)}">Save (บันทึก)</button></div></div>`;$('#rn').focus()}
-async function renSave(x,b){const n=$('#rn').value.trim();if(!n)return toast('กรุณาใส่ชื่อ');b.disabled=true;
-  try{const cur=S[S.tab].find(y=>y.id===x.id);if(!cur)throw 0;const{id,...data}=cur;await db.doc(`projects/${S.proj.id}/${S.tab}/${id}`).set({...data,item:n});$('#modal').hidden=true;toast('Saved (บันทึกเรียบร้อย)')}
-  catch(e){toast('บันทึกไม่สำเร็จ');b.disabled=false}}
-function addPhForm(x){const m=$('#modal');m.hidden=false;
-  clearMp();
-  m.innerHTML=`<div class="box"><h3>Add photos (เพิ่มรูป)</h3><p class="mu sm">${esc(x.item||'(ไม่ระบุชื่อ)')} · now ${imgIds(x).length} photo(s) (ตอนนี้มี ${imgIds(x).length} รูป)</p><input id="ff2" type="file" accept="image/*" multiple><div id="pv2" class="pv"></div><div class="row"><button class="btn ghost" data-a="mclose">← Back (กลับ)</button><button class="btn" id="apok" data-a="apok" data-id="${esc(x.id)}">Save (บันทึก)</button></div></div>`}
-async function addPhSave(x,b){
-  const files=mp.map(p=>p.f);if(!files.length)return toast('กรุณาเลือกรูปก่อน');
-  if(!assets)return toast('บัญชีนี้ยังอัปโหลดไฟล์ไม่ได้');
-  b.disabled=true;const ids=[];
-  try{
-    for(let i=0;i<files.length;i++){b.textContent=`Uploading ${i+1}/${files.length}…`;ids.push((await assets.upload(await shrink(files[i]))).id)}
-    const cur=S.photos.find(y=>y.id===x.id);if(!cur)throw new Error('รายการนี้ถูกลบไปแล้ว');
-    const{id,...data}=cur,all=imgIds(cur).concat(ids);
-    await db.doc(`projects/${S.proj.id}/photos/${id}`).set({...data,asset:all[0],assets:all});
-    clearMp();$('#modal').hidden=true;toast('Saved (บันทึกเรียบร้อย)')
-  }catch(e){await dropAssets(ids);toast('เกิดข้อผิดพลาด: '+(e.message||e.code||'ไม่ทราบสาเหตุ'));b.disabled=false;b.textContent='Save (บันทึก)'}
-}
-async function dropAssets(ids){if(!assets)return;for(const a of ids){try{await assets.delete(a)}catch(e){}}}
-function delGate(){
-  const m=$('#modal');m.hidden=false;
-  m.innerHTML=`<div class="box"><h3>Delete project (ลบโครงการ)</h3><p class="mu">การลบจะลบรูปและแบบทั้งหมดของโครงการนี้ และกู้คืนไม่ได้ ใส่รหัส 4 หลักเพื่อยืนยัน</p><input id="dc" type="tel" inputmode="numeric" maxlength="4" placeholder="0000"><p class="err" id="de"></p><div class="row"><button class="btn ghost" data-a="mclose">← Back (กลับ)</button><button class="btn danger-fill" data-a="delok">Delete (ลบ)</button></div></div>`;
-  $('#dc').focus();
-}
-async function delProject(){
-  if($('#dc').value.trim()!==S.proj.code){$('#de').textContent='รหัสไม่ถูกต้อง';return}
-  if(!S.ready||!S.ready.photos||!S.ready.plans||!S.ready.chat){$('#de').textContent='กำลังโหลดข้อมูล กรุณารอสักครู่แล้วลองใหม่';return}
-  const b=$('[data-a=delok]'),id=S.proj.id;b.disabled=true;b.textContent='กำลังลบ…';
-  try{
-    for(const k of ['photos','plans','chat'])for(const x of S[k]){
-      await db.doc(`projects/${id}/${k}/${x.id}`).delete();
-      if(assets)for(const a of imgIds(x)){if(a){try{await assets.delete(a)}catch(e){}}}
-    }
-    if(assets&&S.proj.cover){try{await assets.delete(S.proj.cover)}catch(e){}}
-    await db.doc('projects/'+id).delete();
-    home();$('#modal').hidden=true;toast('ลบโครงการแล้ว');
-  }catch(x){toast('ลบไม่สำเร็จ ลองอีกครั้ง (ข้อมูลที่ลบไปแล้วบางส่วนจะไม่กลับมา)');b.disabled=false;b.textContent='Delete (ลบ)'}
-}
-async function save(){
-  const files=picked.map(p=>p.f);if(!files.length)return toast('กรุณาเลือกไฟล์ก่อน');
-  if(!assets)return toast('บัญชีนี้ยังอัปโหลดไฟล์ไม่ได้');
-  const b=$('#sv'),ph=S.tab==='photos';b.disabled=true;b.textContent='Uploading… (กำลังอัปโหลด)';
-  const up=[];
-  try{
-    const t=ph?new Date($('#fd').value).getTime()||Date.now():Date.now();
-    if(ph){
-      const ids=up;
-      for(let i=0;i<files.length;i++){b.textContent=`Uploading ${i+1}/${files.length}… (กำลังอัปโหลด)`;ids.push((await assets.upload(await shrink(files[i]))).id)}
-      const id='i'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
-      await db.doc(`projects/${S.proj.id}/photos/${id}`).set({cat:+$('#fc').value,item:$('#fi').value.trim(),note:$('#fn').value.trim(),asset:ids[0],assets:ids,kind:'img',fname:files[0].name,at:t});
-    }else for(const f of files){
-      const isPdf=/pdf/i.test(f.type)||/\.pdf$/i.test(f.name),blob=isPdf?new Blob([f],{type:'application/pdf'}):f,r=await assets.upload(blob),id='i'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
-      up.push(r.id);await db.doc(`projects/${S.proj.id}/${S.tab}/${id}`).set({cat:ph?+$('#fc').value:null,item:$('#fi').value.trim(),note:ph?$('#fn').value.trim():'',asset:r.id,kind:isPdf?'pdf':'img',fname:f.name,at:t});
-    }
-    drawForm();toast('Saved (บันทึกเรียบร้อย)');
-  }catch(e){await dropAssets(up);toast('เกิดข้อผิดพลาด: '+(e.message||e.code||'ไม่ทราบสาเหตุ'));b.disabled=false;b.textContent='Save (บันทึก)'}
-}
-document.addEventListener('click',e=>{
-  const t=e.target.closest('.in b,.in p,.in time,.pi b,.pi .sm,.proj b,.proj .sm');
-  if(!t||e.target.closest('[data-a]'))return;
-  if(t.scrollWidth<=t.clientWidth+1)return;
-  if(!$('#modal').hidden)return;
-  const m=$('#modal');m.hidden=false;m.innerHTML='<div class="box"><div class="rdb"></div><div class="row"><button class="btn ghost" data-a="mclose">← Back (กลับ)</button></div></div>';m.querySelector('.rdb').textContent=t.textContent;e.stopPropagation();e.preventDefault()
-},true);
-document.addEventListener('click',async e=>{
-  if(!e.target.closest('.combo')){const c=$('#cl');if(c)c.hidden=true}
-  const el=e.target.closest('[data-a]');if(!el)return;const a=el.dataset.a,d=el.dataset;
-  if(a==='cbtn'){const c=$('#cl');if(c&&!c.hidden)c.hidden=true;else showList(true)}
-  else if(a==='copt'){$('#fi').value=d.v;$('#cl').hidden=true}
-  else if(a==='newp')newForm();
-  else if(a==='pvrm2'){const p=mp.splice(+d.i,1)[0];if(p)URL.revokeObjectURL(p.u);drawPv2()}
-  else if(a==='pvrm'){const p=picked.splice(+d.i,1)[0];if(p)URL.revokeObjectURL(p.u);drawPv()}
-  else if(a==='formback'){const dt=el.closest('details');if(dt)dt.open=false}
-  else if(a==='addph'){const x=S.photos.find(y=>y.id===d.id);if(x)addPhForm(x)}
-  else if(a==='apok'){const x=S.photos.find(y=>y.id===d.id);if(x)addPhSave(x,el)}
-  else if(a==='renm'){const x=S[S.tab].find(y=>y.id===d.id);if(x)renForm(x)}
-  else if(a==='dlimg'){const x=S[S.tab].find(y=>y.id===d.id);if(x){const t=el.closest('.ph').querySelector('.gtrack'),k=t?Math.round(t.scrollLeft/t.clientWidth):0;dlImg(x,imgIds(x)[k],k)}}
-  else if(a==='dlall'){const x=S[S.tab].find(y=>y.id===d.id);if(x)dlAll(x,el)}
-  else if(a==='gprev'||a==='gnext'){const t=el.parentElement.querySelector('.gtrack');t.scrollBy({left:(a==='gnext'?1:-1)*t.clientWidth,behavior:'smooth'})}
-  else if(a==='renok'){const x=S[S.tab].find(y=>y.id===d.id);if(x)renSave(x,el)}
-  else if(a==='dlpdf'){const x=S.plans.find(y=>y.id===d.id);if(x)dlPdf(x)}
-  else if(a==='viewpdf'){const x=S.plans.find(y=>y.id===d.id);if(x)pdfView(x)}
-  else if(a==='editp')editForm();
-  else if(a==='editok')saveEdit(el);
-  else if(a==='covrm'){pend=null;drawCov(null);const f=$('#pcov');if(f)f.value=''}
-  else if(a==='create'){
-    const n=$('#pn').value.trim(),c=$('#pc').value.trim();
-    if(!n)return toast('กรุณาตั้งชื่อโครงการ');if(!/^\d{4}$/.test(c))return toast('รหัสต้องเป็นตัวเลข 4 หลัก');
-    const id='p'+Date.now().toString(36),p={name:n,code:c,owner:$('#po').value.trim(),contractor:$('#pt').value.trim(),location:$('#pl').value.trim(),createdAt:Date.now()};
-    el.disabled=true;
-    try{if(pend){p.cover=(await assets.upload(pend)).id}await db.doc('projects/'+id).set(p);enter({id,...p})}catch(x){if(p.cover)await dropAssets([p.cover]);toast('สร้างโครงการไม่สำเร็จ');el.disabled=false}
-  }else if(a==='open')gate(d.id);
-  else if(a==='mclose'){clearMp();pdfView.tok=(pdfView.tok||0)+1;$('#modal').hidden=true}
-  else if(a==='gok'){const p=S.projects.find(x=>x.id===d.id);if(p&&$('#gc').value.trim()===p.code)enter(p);else $('#ge').textContent='รหัสไม่ถูกต้อง'}
-  else if(a==='back')home();
-  else if(a==='delp')delGate();
-  else if(a==='delok')delProject();
-  else if(a==='chat'){S.tab='chat';$('#tabs').style.display='none';drawCats();drawForm();drawList();chatSeen();$('#form').scrollIntoView({block:'start'})}
-  else if(a==='chatback'){S.tab='photos';chatSeen();$('#tabs').style.display='';drawTabs();drawCats();drawForm();drawList();window.scrollTo(0,0)}
-  else if(a==='role'){const n=($('#cn')?$('#cn').value:'').trim();S.role={r:d.r,n};LS.set('hms_role_'+S.proj.id,JSON.stringify(S.role));drawChat()}
-  else if(a==='crole'){S.role=null;LS.del('hms_role_'+S.proj.id);drawChat()}
-  else if(a==='csend')chatSend(el)
-  else if(a==='cdel'){if(el.dataset.arm){try{await db.doc(`projects/${S.proj.id}/chat/${d.id}`).delete()}catch(x){toast('ลบไม่สำเร็จ')}}else{el.dataset.arm='1';el.textContent='Delete? (ลบ?)';setTimeout(()=>{if(el.isConnected){delete el.dataset.arm;el.textContent='✕'}},3000)}}
-  else if(a==='tab'){S.tab=d.t;drawTabs();drawCats();drawForm();drawList()}
-  else if(a==='cat'){S.cat=+d.i;drawCats();drawList();if(S.cat>=0&&$('#fc')){$('#fc').value=S.cat;hints()}}
-  else if(a==='zoom'){$('#lb img').src=d.src;$('#lb').hidden=false}
-  else if(a==='lbx')$('#lb').hidden=true;
-  else if(a==='save')save();
-  else if(a==='del'){
-    if(!el.dataset.s){el.dataset.s=1;el.textContent='Tap again (แตะอีกครั้งเพื่อลบ)';setTimeout(()=>{el.dataset.s='';el.textContent='Delete (ลบ)'},3000);return}
-    try{const x0=S[S.tab].find(y=>y.id===d.id);await db.doc(`projects/${S.proj.id}/${S.tab}/${d.id}`).delete();if(x0&&assets)for(const aid of imgIds(x0)){try{await assets.delete(aid)}catch(e){}}}catch(x){toast('ลบไม่สำเร็จ')}
-  }
-});
-document.addEventListener('input',e=>{if(e.target.id==='fi')showList()});
-document.addEventListener('scroll',e=>{const t=e.target;if(t&&t.classList&&t.classList.contains('gtrack')){const c=t.parentElement.querySelector('.gcnt');if(c)c.textContent=(Math.round(t.scrollLeft/t.clientWidth)+1)+'/'+t.children.length}},true);
-document.addEventListener('change',async e=>{if(e.target.id==='ff2'){for(const f of e.target.files)mp.push({f,u:URL.createObjectURL(f)});e.target.value='';drawPv2()}
-  if(e.target.id==='ff'){for(const f of e.target.files)picked.push({f,u:URL.createObjectURL(f)});e.target.value='';drawPv()}
-  if(e.target.id==='pcov'){const f=e.target.files[0];if(f){pend=f;drawCov(URL.createObjectURL(pend))}}
-  if(e.target.id==='fc')hints()});
-(async()=>{
-  const cfgOk=/^https:\/\/[^/]+$/.test(SUPABASE_URL)&&SUPABASE_KEY&&!/PUT_/.test(SUPABASE_URL+SUPABASE_KEY);
-  if(cfgOk){
-    try{if(!window.supabase)await loadJs('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js');
-      sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});db=makeDb();assets=assetsApi}
-    catch(e){$('#app').innerHTML='<section class="wrap"><div class="card"><h3>เชื่อมต่อฐานข้อมูลไม่สำเร็จ (Not connected)</h3><p class="mu">ตรวจสอบอินเทอร์เน็ตแล้วรีเฟรชหน้า</p></div></section>';return}
-  }else{
-    try{const L=await makeLocal();db=L.db;assets=L.assets}
-    catch(e){$('#app').innerHTML='<section class="wrap"><div class="card"><h3>เบราว์เซอร์นี้บันทึกข้อมูลไม่ได้</h3><p class="mu">ลองปิดโหมดไม่ระบุตัวตน (Private/Incognito) แล้วเปิดใหม่</p></div></section>';return}
-    document.querySelector('header').insertAdjacentHTML('afterend','<div style="background:#3a2c0e;color:#f3d79a;text-align:center;padding:6px 12px;font-size:.85rem">Demo mode: data is saved on this device only (โหมดทดลอง ข้อมูลเก็บในเครื่องนี้เท่านั้น ไม่แชร์กับเครื่องอื่น)</div>');
-  }
-  home();
-  db.collection('projects').onSnapshot(q=>{S.projects=q.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));if(!S.proj)drawProjects();else if(!S.projects.some(x=>x.id===S.proj.id)&&Date.now()-(S.proj.createdAt||0)>60000){toast('โครงการนี้ถูกลบแล้ว');home()}},()=>toast('โหลดโครงการไม่สำเร็จ'));
-})();
-</script></body></html>
+<meta name="description" content="ระบบตรวจวัสดุและสเปกงานก่อสร้าง บันทึกรูปวัสดุหน้างาน แบบก่อสร้าง และแชทกับทีมในแต่ละโครงการ">
+<meta name="theme-color" content="#0e1d31">
+<meta name="color-scheme" content="dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Home Material Spec">
+<meta property="og:description" content="Material & Spec Check (ตรวจวัสดุและสเปกงานก่อสร้าง)">
+<meta property="og:image" content="https://bigkao9.github.io/homematspec/icon-512.png">
+<meta name="apple-mobile-web-app-title" content="HMS">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&amp;display=swap">
+<link rel="stylesheet" href="app.css?v=3">
+<script src="data.js?v=3" defer></script>
+<script src="app.js?v=3" defer></script>
+</head>
+<body>
+<a class="skip" href="#app">ข้ามไปเนื้อหา (Skip to content)</a>
+<header class="hdr">
+  <button class="brand" data-a="home" aria-label="Home Material Spec – หน้าแรก">
+    <img src="logo.png" width="40" height="40" alt="">
+    <span><b>Home Material Spec</b><small>Material &amp; Spec Check (ตรวจวัสดุและสเปกงานก่อสร้าง)</small></span>
+  </button>
+  <div class="credit">
+    <div class="l">Advisor (อาจารย์ที่ปรึกษา)</div><div class="n">อาจารย์ศรันยู พรมศร</div>
+    <div class="l">Developed by (จัดทำโดย)</div><div class="n">นายวสุพล เปี่ยมจิตร · นายสุชาวัฒน์ นิสังกาศ</div>
+  </div>
+  <button class="icbtn about" data-a="about" aria-label="About (เกี่ยวกับ)"><svg class="ic" aria-hidden="true"><use href="#i-info"/></svg></button>
+</header>
+<main id="app" tabindex="-1"><section class="wrap"><div class="pgrid"><div class="pc sk"></div><div class="pc sk"></div><div class="pc sk"></div></div></section></main>
+<dialog id="dlg" class="dlg" tabindex="-1" aria-label="Dialog"></dialog>
+<dialog id="lb" class="lb" aria-label="Photo viewer (ดูรูป)"><img alt=""><button class="icbtn lbx" data-a="lbx" aria-label="Close (ปิด)"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></dialog>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<noscript><p class="wrap">กรุณาเปิดใช้งาน JavaScript (Please enable JavaScript)</p></noscript>
+<svg width="0" height="0" class="vh" aria-hidden="true">
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9v12h14V9"/><path d="M10 21v-6h4v6"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+  <symbol id="i-tool" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 13h18"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
+  <symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v12H4z"/><circle cx="12" cy="13.5" r="3.5"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24"><path d="M6 3h8l5 5v13H6z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"/></symbol>
+  <symbol id="i-stack" viewBox="0 0 24 24"><path d="M12 3 3 8l9 5 9-5z"/><path d="m3 13 9 5 9-5"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+  <symbol id="i-chev-l" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></symbol>
+  <symbol id="i-chev-r" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+  <symbol id="i-chev-d" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M4 12 20 4l-6 16-3-7z"/><path d="m11 13 9-9"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17v.5"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 6h6l2 2h10v11H3z"/></symbol>
+</svg>
+</body>
+</html>
