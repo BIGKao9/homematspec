@@ -217,8 +217,8 @@ function cleanupModal() {
 function home() {
   S.subs.forEach(f => f()); S.subs = []; S.proj = null; document.body.classList.remove('in-proj');
   $('#app').innerHTML = `<section class="wrap home">
-    <div class="pagehead"><div class="ptitle"><h1>My Projects <small>(โครงการของฉัน)</small></h1><p class="mu" id="pcount"></p></div>
-      <button class="btn pri lg" data-a="newp">${icon('plus')}<span>Create Project <small>(สร้างโครงการ)</small></span></button></div>
+    <div class="pagehead"><button class="btn pri lg" data-a="newp">${icon('plus')}<span>Create Project <small>(สร้างโครงการ)</small></span></button>
+      <div class="ptitle"><h1>My Projects <small>(โครงการของฉัน)</small></h1><p class="mu" id="pcount"></p></div></div>
     <label class="search" hidden>${icon('search')}<input id="pq" type="search" placeholder="Search projects (ค้นหาโครงการ)" value="${esc(S.q)}" autocomplete="off" enterkeyhint="search" aria-label="Search projects"></label>
     <div id="plist" class="pgrid">${'<div class="pc sk"></div>'.repeat(3)}</div></section>`;
   if (S.loaded) drawProjects();
