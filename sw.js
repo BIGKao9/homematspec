@@ -13,7 +13,9 @@ self.addEventListener('fetch', e => {
   const req = e.request, url = new URL(req.url);
   if (req.method !== 'GET' || url.protocol === 'blob:') return;
   if (url.origin === location.origin) {
-    e.respondWith(fetch(req).then(res => {
+    // หน้า HTML: ถามเซิร์ฟเวอร์ทุกครั้ง (ไม่ติดแคช 10 นาทีของ GitHub Pages)
+    const net = req.mode === 'navigate' ? fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' }) : fetch(req);
+    e.respondWith(net.then(res => {
       if (res.ok) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(req, copy)); }
       return res;
     }).catch(() => caches.match(req, { ignoreSearch: req.mode === 'navigate' }).then(r => r || caches.match('./'))));
