@@ -224,7 +224,7 @@ function home() {
   if (S.loaded) drawProjects();
   window.scrollTo(0, 0);
 }
-const metaLines = p => META.map(([k, l, i]) => `<span class="meta">${icon(i, 'xs')}<span class="clip1"><span class="mu">${l}:</span> ${p[k] ? esc(p[k]) : '-'}</span></span>`).join('');
+const metaLines = p => META.map(([k, l, i]) => `<span class="meta">${icon(i, 'xs')}<span class="clip1 expand"><span class="mu">${l}:</span> ${p[k] ? esc(p[k]) : '-'}</span></span>`).join('');
 function drawProjects() {
   const el = $('#plist'); if (!el) return;
   const q = S.q.trim().toLowerCase(), rows = S.projects.filter(p => !q || [p.name, p.owner, p.contractor, p.location].some(v => (v || '').toLowerCase().includes(q)));
@@ -232,9 +232,10 @@ function drawProjects() {
   $('.search').hidden = S.projects.length < 4;
   if (!S.projects.length) { el.innerHTML = empty('folder', 'No projects yet (ยังไม่มีโครงการ)', 'Tap “Create Project” to start (กดสร้างโครงการเพื่อเริ่มต้น)'); return; }
   if (!rows.length) { el.innerHTML = empty('search', 'No matching projects (ไม่พบโครงการ)'); return; }
-  el.innerHTML = rows.map(p => `<button class="pc" data-a="open" data-id="${esc(p.id)}">
-    <span class="pc-cover">${p.cover ? `<img src="${esc(api.url(p.cover))}" alt="" loading="lazy" decoding="async">` : icon('home', 'xl')}<span class="pc-lock">${icon('lock', 'xs')}</span></span>
-    <span class="pc-body"><b class="clip1">${esc(p.name)}</b>${metaLines(p)}<small class="mu">Created ${fmt(p.createdAt, { dateStyle: 'medium' })} (สร้างเมื่อ)</small></span></button>`).join('');
+  el.innerHTML = rows.map(p => `<article class="pc">
+    <div class="pc-cover">${p.cover ? `<img src="${esc(api.url(p.cover))}" alt="" loading="lazy" decoding="async">` : icon('home', 'xl')}<span class="pc-lock">${icon('lock', 'xs')}</span></div>
+    <div class="pc-body"><h2 class="pc-name clip1 expand">${esc(p.name)}</h2>${metaLines(p)}<small class="mu">Created ${fmt(p.createdAt, { dateStyle: 'medium' })} (สร้างเมื่อ)</small>
+      <button class="btn pri pc-open" data-a="open" data-id="${esc(p.id)}">${icon('lock')}<span>Open project <small>(เข้าโครงการ)</small></span></button></div></article>`).join('');
 }
 
 /* ---------- project form / gate ---------- */
