@@ -348,7 +348,7 @@ async function delProject(btn) {
 /* ---------- project screen ---------- */
 function enter(p) {
   S.subs.forEach(f => f());
-  Object.assign(S, { proj: p, tab: 'photos', cat: -1, photos: [], plans: [], chat: [], ready: {}, role: loadRole(p.id) });
+  Object.assign(S, { proj: p, projSeen: S.projects.some(x => x.id === p.id), tab: 'photos', cat: -1, photos: [], plans: [], chat: [], ready: {}, role: loadRole(p.id) });
   document.body.classList.add('in-proj');
   $('#app').innerHTML = `<section class="wrap ptop" id="ptop"></section>
     <nav class="tabs" id="tabs" role="tablist" aria-label="Project sections"></nav>
@@ -725,8 +725,9 @@ document.addEventListener('scroll', e => {
     S.loaded = true; S.projects = rows.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
     if (!S.proj) return drawProjects();
     const cur = rows.find(x => x.id === S.proj.id);
-    if (!cur) { if (Date.now() - (S.proj.createdAt || 0) > 60000) { toast('โครงการนี้ถูกลบแล้ว'); closeModal(); home(); } }
-    else if (JSON.stringify(cur) !== JSON.stringify(S.proj)) { S.proj = cur; drawTop(); }
+    // gone from the list after we had seen it = deleted on another device (the age check covers a just-created project not listed yet)
+    if (!cur) { if (S.projSeen || Date.now() - (S.proj.createdAt || 0) > 60000) { toast('โครงการนี้ถูกลบแล้ว (Project deleted)'); closeModal(); home(); } }
+    else { S.projSeen = true; if (JSON.stringify(cur) !== JSON.stringify(S.proj)) { S.proj = cur; drawTop(); } }
   }, () => toast('โหลดโครงการไม่สำเร็จ', 'err'));
   if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => { });
 })();
