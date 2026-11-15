@@ -37,10 +37,11 @@ p{margin:0}
 .brand b{display:block;font-size:1.3rem;letter-spacing:.2px;white-space:nowrap}
 .brand small{display:block;color:var(--mu);font-size:.84rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .brand span{min-width:0}
-.credit{display:none;margin-left:auto;text-align:right;font-size:.9rem;line-height:1.35}
-.credit .l{color:#7d94b4;font-size:.8rem}.credit .n{color:#b8cae2}
-.hdr .about{margin-left:auto;width:50px;height:50px}
-.hdr .about .ic{width:28px;height:28px}
+.about{display:inline-flex;align-items:center;justify-content:center;gap:8px;flex:none;margin-left:auto;min-width:50px;height:50px;padding:0 12px;border-radius:99px;
+  border:1.5px solid rgb(232 169 63/.65);background:rgb(232 169 63/.12);color:var(--ac-2);font-weight:700;font-size:1rem;transition:background-color .15s,transform .12s}
+.about:hover{background:rgb(232 169 63/.22)}.about:active{transform:scale(.96)}
+.about small{font-weight:400;opacity:.85}
+.about .ic{width:28px;height:28px}
 
 /* layout */
 .wrap{width:100%;max-width:1120px;margin:0 auto;padding:16px max(14px,env(safe-area-inset-left)) 16px max(14px,env(safe-area-inset-right))}
@@ -326,8 +327,8 @@ body.in-proj .toast{bottom:calc(var(--nav) + var(--safe-b) + 14px)}
   .brand{gap:14px}
   .brand img{width:66px;height:66px;border-radius:16px}
   .brand b{font-size:1.75rem}.brand small{font-size:1rem}
-  .credit{display:block}
-  .hdr .about{margin-left:0}
+  .about{height:58px;padding:0 24px 0 18px;font-size:1.15rem;gap:10px}
+  .about .ic{width:30px;height:30px}
   .wrap{padding-left:24px;padding-right:24px}
   .pagehead{margin:18px 0 26px}
   .pagehead h1{font-size:2.5rem}
