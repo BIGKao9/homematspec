@@ -406,7 +406,7 @@ function card(x, ph) {
     <div class="in">${ph && CATS[x.cat] ? `<span class="tag clip1">${esc(CATS[x.cat])}</span>` : ''}
       <b class="clip1 expand">${esc(x.item || '(ไม่ระบุชื่อ)')}</b><time class="mu">${fmt(x.at, { dateStyle: 'medium', timeStyle: 'short' })}</time>
       ${x.note ? `<p class="note clip2 expand">${esc(x.note)}</p>` : ''}
-      <div class="acts">${pdf ? `<button class="btn ghost sm" data-a="viewpdf" ${i}>${icon('eye')}View (เปิดดู)</button>` : `<button class="btn ghost sm" data-a="dl" ${i}>${icon('download')}<span><span class="hide-sm">Save </span>PDF<small class="hide-sm"> (บันทึก)</small></span></button>`}
+      <div class="acts">${pdf ? `<button class="btn ghost sm" data-a="viewpdf" ${i}>${icon('eye')}View (เปิดดู)</button>` : `<button class="btn ghost sm" data-a="dl" ${i}>${icon('download')}<span><span class="hide-sm">Save photo (</span>บันทึกรูป<span class="hide-sm">)</span></span></button>`}
       <button class="icbtn" data-a="more" ${i} aria-label="More actions (ตัวเลือกเพิ่มเติม)">${icon('more')}</button></div></div></article>`;
 }
 function drawList() {
@@ -424,7 +424,8 @@ function drawList() {
 function moreSheet(x) {
   const ph = S.tab === 'photos', pdf = x.kind === 'pdf', n = ids(x).length, i = `data-id="${esc(x.id)}"`;
   openModal(`<div class="sheet"><div class="dhead"><h2 class="clip1 expand">${esc(x.item || '(ไม่ระบุชื่อ)')}</h2><button class="icbtn" data-a="mclose" aria-label="Close (ปิด)">${icon('x')}</button></div><div class="menu">
-    <button data-a="dl" ${i}>${icon('download')}Save PDF (บันทึกเป็น PDF${!pdf && n > 1 ? ` ทั้ง ${n} รูป` : ''})</button>
+    ${pdf ? `<button data-a="dl" ${i}>${icon('download')}Download PDF (ดาวน์โหลด)</button>`
+      : `<button data-a="pdf" ${i}>${icon('doc')}Save as PDF (บันทึกเป็น PDF${n > 1 ? ` ทั้ง ${n} รูป` : ''})</button>`}
     ${ph ? `<button data-a="addph" ${i}>${icon('plus')}Add photos (เพิ่มรูป)</button>` : ''}
     <button data-a="edititem" ${i}>${icon('edit')}${ph ? 'Edit details (แก้ไขรายละเอียด)' : 'Rename (แก้ไขชื่อ)'}</button>
     <button class="danger" data-a="del" ${i}>${icon('trash')}Delete (ลบ)</button></div></div>`, 'narrow');
@@ -550,7 +551,23 @@ async function delItem(x, btn) {
 }
 
 /* ---------- downloads & viewers ---------- */
-/* PDF export: every saved file is a PDF. Each photo becomes one A4 page, drawn on a canvas with the
+/* Save one photo as JPG (stored photos are WebP; JPG goes into every phone's photo album).
+   On a phone saveBlob opens the share sheet, where "Save Image" puts it in the album. */
+async function toJpeg(blob) {
+  if (blob.type === 'image/jpeg') return blob;
+  const bmp = await createImageBitmap(blob), c = document.createElement('canvas'); c.width = bmp.width; c.height = bmp.height;
+  const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(bmp, 0, 0); bmp.close?.();
+  return new Promise((ok, no) => c.toBlob(b => b ? ok(b) : no(new Error('แปลงรูปไม่สำเร็จ')), 'image/jpeg', .92));
+}
+async function saveImage(x, k, btn) {
+  busy(btn, true);
+  try {
+    const all = ids(x), b = await toJpeg(await (await fetch(api.url(all[k] || all[0]))).blob());
+    await saveBlob(b, `${safeName(x.item || x.fname) || 'photo'}${all.length > 1 ? '_' + (k + 1) : ''}.jpg`);
+  } catch (e) { toast(errMsg(e, 'บันทึกรูปไม่สำเร็จ'), 'err'); }
+  busy(btn, false);
+}
+/* PDF export (replaces the old ZIP): all photos of an item in one PDF. Each photo becomes one A4 page, drawn on a canvas with the
    page's own Sarabun font (so Thai renders exactly as on screen) and embedded as a JPEG in a small
    hand-written PDF, with no library or font embedding needed. Uploaded PDF drawings are saved as the original. */
 const A4 = { w: 595.28, h: 841.89 }, PX = 1240, PY = Math.round(PX * A4.h / A4.w);
@@ -705,7 +722,12 @@ const A = {
   edititem: d => { const x = item(d.id); if (x) editItem(x); },
   del: d => { const x = item(d.id); if (x) confirmDel(x); },
   delok: (d, el) => { const x = item(d.id); if (x) delItem(x, el); },
-  dl: (d, el) => { const x = item(d.id); if (x) savePdf(x, el); },
+  dl: (d, el) => {
+    const x = item(d.id); if (!x) return;
+    if (x.kind === 'pdf') return savePdf(x, el);
+    const t = el.closest('.item')?.querySelector('.gtrack'); saveImage(x, t ? Math.round(t.scrollLeft / t.clientWidth) : 0, el);
+  },
+  pdf: (d, el) => { const x = item(d.id); if (x) savePdf(x, el); },
   viewpdf: d => { const x = item(d.id); if (x) pdfView(x); },
   zoom: d => { const lb = $('#lb'); $('img', lb).src = d.src; lb.showModal(); },
   lbx: () => $('#lb').close(),
