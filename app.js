@@ -265,7 +265,6 @@ function projForm(p) {
     ${field('fowner', 'Owner name (ชื่อเจ้าของโครงการ)', inp('fowner', p?.owner, 'เช่น คุณสมชาย ใจดี'))}
     ${field('fcon', 'Contractor name (ชื่อผู้รับเหมา)', inp('fcon', p?.contractor, 'เช่น บริษัท รับเหมา จำกัด'))}
     ${field('floc', 'Site location (สถานที่ก่อสร้าง)', inp('floc', p?.location, 'เช่น ซอยลาดพร้าว 71 กรุงเทพฯ', 120))}
-    ${edit ? `<div class="danger-zone"><div><b>Delete project (ลบโครงการ)</b><p class="mu">ลบรูป แบบ และแชททั้งหมดของโครงการนี้ กู้คืนไม่ได้</p></div><button type="button" class="btn danger sm" data-a="delp">${icon('trash')}Delete (ลบ)</button></div>` : ''}
     </div>
     <div class="dfoot"><button type="button" class="btn ghost" data-a="mclose">Cancel (ยกเลิก)</button><button class="btn pri">${edit ? 'Save (บันทึก)' : 'Create (สร้างโครงการ)'}</button></div></form>`, 'wide');
   drawCov(p?.cover ? api.url(p.cover) : '');
@@ -364,7 +363,7 @@ function drawTop() {
     ${p.cover ? `<img class="pthumb" src="${esc(api.url(p.cover))}" alt="" data-a="zoom" data-src="${esc(api.url(p.cover))}">` : ''}
     <div class="ph-info"><h1 class="clip1 expand">${esc(p.name)}</h1><div class="ph-meta">${metaLines(p)}</div></div>
     <button class="btn ghost sm" data-a="editp" aria-label="Edit project (แก้ไขโครงการ)">${icon('edit')}<span class="hide-sm">Edit (แก้ไข)</span></button>
-    <button class="btn danger sm" data-a="delp" aria-label="Delete project (ลบโครงการ)">${icon('trash')}<span class="hide-sm">Delete (ลบ)</span></button></div>`;
+    <button class="btn danger sm" data-a="delp" aria-label="Delete project (ลบโครงการ)">${icon('trash')}<span>Delete <small class="hide-sm">(ลบโครงการ)</small></span></button></div>`;
 }
 function drawTabs() {
   const el = $('#tabs'); if (!el) return; const n = unread();
