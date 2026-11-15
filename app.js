@@ -207,6 +207,13 @@ function openModal(html, cls = '') {
   (d.querySelector('[autofocus]') || (coarse() ? d : d.querySelector('input:not([type=file]),textarea,select')) || d).focus?.({ preventScroll: true });
 }
 function closeModal() { const d = dlg(); if (d.open) d.close(); }
+/* Full text of a truncated "…" line, in its own dialog stacked on top, so an open form underneath keeps its input. */
+function showFull(text) {
+  const d = $('#txt');
+  d.innerHTML = `<div><div class="dhead"><h2>Details <small>(รายละเอียด)</small></h2><button class="icbtn" data-a="txtx" aria-label="Close (ปิด)">${icon('x')}</button></div><div class="dbody"><p class="fulltext"></p></div></div>`;
+  $('.fulltext', d).textContent = text.trim();
+  if (!d.open) d.showModal();
+}
 function cleanupModal() {
   picked.forEach(p => p.u && URL.revokeObjectURL(p.u)); picked = [];
   if (covUrl) { URL.revokeObjectURL(covUrl); covUrl = ''; }
@@ -293,7 +300,7 @@ function gate(id) {
   if (SS.get('hms_ok_' + id)) { transition(() => enter(p)); return; }
   openModal(`<form class="form gate" data-f="gate" data-id="${esc(id)}" novalidate>
     <button type="button" class="icbtn close" data-a="mclose" aria-label="Close (ปิด)">${icon('x')}</button>
-    <div class="gate-ic">${icon('lock', 'lg')}</div><h2 class="clip1">${esc(p.name)}</h2>
+    <div class="gate-ic">${icon('lock', 'lg')}</div><h2 class="clip1 expand">${esc(p.name)}</h2>
     <p class="mu">Enter the 4-digit project code<br>(ใส่รหัส 4 หลักเพื่อเข้าโครงการ)</p>
     <input id="gc" class="code big" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••" aria-label="Project code (รหัสโครงการ)" enterkeyhint="go" autofocus>
     <p class="ferr center" id="ge" role="alert"></p>
@@ -310,7 +317,7 @@ async function tryGate(id) {
 function delProjForm() {
   openModal(`<form class="form" data-f="delp" novalidate>
     <div class="dhead"><h2>Delete project <small>(ลบโครงการ)</small></h2><button type="button" class="icbtn" data-a="mclose" aria-label="Close (ปิด)">${icon('x')}</button></div>
-    <div class="dbody"><div class="warn">${icon('alert')}<p>รูป แบบก่อสร้าง และแชททั้งหมดของ <b>${esc(S.proj.name)}</b> จะถูกลบถาวร กู้คืนไม่ได้</p></div>
+    <div class="dbody"><div class="warn">${icon('alert')}<p>รูป แบบก่อสร้าง และแชททั้งหมดของ<b class="clip1 expand">${esc(S.proj.name)}</b>จะถูกลบถาวร กู้คืนไม่ได้</p></div>
     ${field('dc', 'Enter project code to confirm (ใส่รหัส 4 หลักเพื่อยืนยัน)', '<input id="dc" class="code" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••" enterkeyhint="done">')}</div>
     <div class="dfoot"><button type="button" class="btn ghost" data-a="mclose">Cancel (ยกเลิก)</button><button class="btn danger-fill">${icon('trash')}Delete (ลบ)</button></div></form>`, 'narrow');
   lockMsg(S.proj.id, 'dc-err');
@@ -355,8 +362,9 @@ function drawTop() {
   el.innerHTML = `<div class="phead">
     <button class="icbtn" data-a="home" aria-label="Back to projects (กลับ)">${icon('back')}</button>
     ${p.cover ? `<img class="pthumb" src="${esc(api.url(p.cover))}" alt="" data-a="zoom" data-src="${esc(api.url(p.cover))}">` : ''}
-    <div class="ph-info"><h1 class="clip1">${esc(p.name)}</h1><div class="ph-meta">${metaLines(p)}</div></div>
-    <button class="btn ghost sm" data-a="editp" aria-label="Edit project (แก้ไขโครงการ)">${icon('edit')}<span class="hide-sm">Edit (แก้ไข)</span></button></div>`;
+    <div class="ph-info"><h1 class="clip1 expand">${esc(p.name)}</h1><div class="ph-meta">${metaLines(p)}</div></div>
+    <button class="btn ghost sm" data-a="editp" aria-label="Edit project (แก้ไขโครงการ)">${icon('edit')}<span class="hide-sm">Edit (แก้ไข)</span></button>
+    <button class="btn danger sm" data-a="delp" aria-label="Delete project (ลบโครงการ)">${icon('trash')}<span class="hide-sm">Delete (ลบ)</span></button></div>`;
 }
 function drawTabs() {
   const el = $('#tabs'); if (!el) return; const n = unread();
@@ -411,7 +419,7 @@ function drawList() {
 }
 function moreSheet(x) {
   const ph = S.tab === 'photos', pdf = x.kind === 'pdf', n = ids(x).length, i = `data-id="${esc(x.id)}"`;
-  openModal(`<div class="sheet"><div class="dhead"><h2 class="clip1">${esc(x.item || '(ไม่ระบุชื่อ)')}</h2><button class="icbtn" data-a="mclose" aria-label="Close (ปิด)">${icon('x')}</button></div><div class="menu">
+  openModal(`<div class="sheet"><div class="dhead"><h2 class="clip1 expand">${esc(x.item || '(ไม่ระบุชื่อ)')}</h2><button class="icbtn" data-a="mclose" aria-label="Close (ปิด)">${icon('x')}</button></div><div class="menu">
     ${pdf ? `<button data-a="dl" ${i}>${icon('download')}Download PDF (ดาวน์โหลด)</button>` : ''}
     ${!pdf && n > 1 ? `<button data-a="dlall" ${i}>${icon('stack')}Download all ${n} photos (ดาวน์โหลดทั้งหมดเป็น ZIP)</button>` : ''}
     ${ph ? `<button data-a="addph" ${i}>${icon('plus')}Add photos (เพิ่มรูป)</button>` : ''}
@@ -529,7 +537,7 @@ async function saveItem(id, btn) {
 }
 function confirmDel(x) {
   openModal(`<div class="confirm"><div class="gate-ic danger">${icon('trash', 'lg')}</div><h2>Delete this item? <small>(ลบรายการนี้?)</small></h2>
-    <p class="mu">“${esc(x.item || '(ไม่ระบุชื่อ)')}” และไฟล์ทั้งหมดจะถูกลบถาวร กู้คืนไม่ได้</p>
+    <b class="clip1 expand">${esc(x.item || '(ไม่ระบุชื่อ)')}</b><p class="mu">รายการนี้และไฟล์ทั้งหมดจะถูกลบถาวร กู้คืนไม่ได้</p>
     <div class="dfoot"><button class="btn ghost" data-a="mclose">Cancel (ยกเลิก)</button><button class="btn danger-fill" data-a="delok" data-id="${esc(x.id)}">${icon('trash')}Delete (ลบ)</button></div></div>`, 'narrow');
 }
 async function delItem(x, btn) {
@@ -557,7 +565,7 @@ async function dlAll(x, btn) {
 }
 async function pdfView(x) {
   const tok = ++pdfTok + 0;
-  openModal(`<div class="pdfv"><div class="dhead"><h2 class="clip1">${esc(x.item || x.fname || 'PDF')}</h2>
+  openModal(`<div class="pdfv"><div class="dhead"><h2 class="clip1 expand">${esc(x.item || x.fname || 'PDF')}</h2>
     <button class="btn ghost sm" data-a="dl" data-id="${esc(x.id)}">${icon('download')}<span class="hide-sm">Download (ดาวน์โหลด)</span></button><button class="icbtn" data-a="mclose" aria-label="Close (ปิด)">${icon('x')}</button></div>
     <div id="pgs" class="pgs"><p class="mu center"><span class="spin"></span> Loading… (กำลังโหลด)</p></div></div>`, 'full');
   const box = $('#pgs'), live = () => tok === pdfTok && box.isConnected;
@@ -592,7 +600,7 @@ function drawChat() {
       <div class="rolegrid">${Object.entries(ROLES).map(([k, l]) => `<button class="btn ghost role" data-a="role" data-r="${k}"><span class="dot rt-${k}"></span>${l}</button>`).join('')}</div></div>`;
     return;
   }
-  v.innerHTML = `<div class="chat card"><div class="chhead"><span class="rtag rt-${S.role.r}">${ROLES[S.role.r]}</span>${S.role.n ? `<b class="clip1">${esc(S.role.n)}</b>` : ''}
+  v.innerHTML = `<div class="chat card"><div class="chhead"><span class="rtag rt-${S.role.r}">${ROLES[S.role.r]}</span>${S.role.n ? `<b class="clip1 expand">${esc(S.role.n)}</b>` : ''}
     <button class="btn ghost sm" data-a="crole">Change role (เปลี่ยนบทบาท)</button></div>
     <div id="cmsgs" class="cmsgs" role="log" aria-live="polite"></div>
     <form class="csend" data-f="chat"><textarea id="ct" maxlength="1000" rows="1" placeholder="Type a message… (พิมพ์ข้อความ)" enterkeyhint="send" aria-label="Message (ข้อความ)"></textarea>
@@ -644,6 +652,7 @@ const A = {
   gprev: (d, el) => { const t = el.parentElement.querySelector('.gtrack'); t.scrollBy({ left: -t.clientWidth, behavior: 'smooth' }); },
   gnext: (d, el) => { const t = el.parentElement.querySelector('.gtrack'); t.scrollBy({ left: t.clientWidth, behavior: 'smooth' }); },
   mclose: closeModal,
+  txtx: () => $('#txt').close(),
   pvrm: d => { const p = picked.splice(+d.i, 1)[0]; if (p?.u) URL.revokeObjectURL(p.u); drawPv(); },
   cbtn: () => { const c = $('#cl'); if (c && !c.hidden) hideList(); else showList(true); },
   copt: d => { $('#fi').value = d.v; hideList(); },
@@ -660,8 +669,7 @@ document.addEventListener('click', e => {
   if (el && !el.disabled) { A[el.dataset.a]?.(el.dataset, el); return; }
   const t = e.target.closest('.expand');
   if (t && (t.scrollWidth > t.clientWidth + 1 || t.scrollHeight > t.clientHeight + 1)) {
-    openModal(`<div class="dhead"><h2>Details <small>(รายละเอียด)</small></h2><button class="icbtn" data-a="mclose" aria-label="Close (ปิด)">${icon('x')}</button></div><div class="dbody"><p class="fulltext"></p></div>`, 'narrow');
-    $('.fulltext', dlg()).textContent = t.textContent;
+    showFull(t.textContent);
   }
 });
 document.addEventListener('submit', e => {
@@ -700,6 +708,7 @@ document.addEventListener('scroll', e => {
   const d = dlg();
   d.addEventListener('close', cleanupModal);
   d.addEventListener('click', e => { if (e.target === d) closeModal(); });
+  $('#txt').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.close(); });
   $('#lb').addEventListener('click', e => { if (!e.target.closest('[data-a]') || e.target === $('#lb')) $('#lb').close(); });
   try { api = CONFIG.supabaseUrl && CONFIG.supabaseKey ? await supabaseBackend() : await localBackend(); }
   catch {
