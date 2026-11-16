@@ -308,7 +308,6 @@ async function saveProject(btn) {
 function gate(id) {
   const p = S.projects.find(x => x.id === id); if (!p) return;
   openModal(`<form class="form gate" data-f="gate" data-id="${esc(id)}" novalidate>
-    <button type="button" class="icbtn close" data-a="mclose" aria-label="Close (ปิด)">${icon('x')}</button>
     <div class="gate-ic">${icon('lock', 'lg')}</div><h2 class="clip1 expand">${esc(p.name)}</h2>
     <p class="mu">Enter the 4-digit project code <small class="blk">(ใส่รหัส 4 หลักเพื่อเข้าโครงการ)</small></p>
     <input id="gc" class="code big" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="••••" aria-label="Project code (รหัสโครงการ)" enterkeyhint="go" autofocus>
