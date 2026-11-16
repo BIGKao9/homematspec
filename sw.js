@@ -1,7 +1,7 @@
 /* Service worker: network-first for this site (F5 always gets the latest version),
    cache is only a fallback for offline. Versioned CDN libraries are cache-first. */
-const CACHE = 'hms-v30';
-const SHELL = ['./', 'index.html', 'prefs.js?v=30', 'app.css?v=30', 'app.js?v=30', 'data.js?v=30', 'logo.png', 'icon-192.png', 'manifest.webmanifest'];
+const CACHE = 'hms-v31';
+const SHELL = ['./', 'index.html', 'prefs.js?v=31', 'app.css?v=31', 'app.js?v=31', 'data.js?v=31', 'logo.png', 'icon-192.png', 'manifest.webmanifest'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

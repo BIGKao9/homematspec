@@ -313,7 +313,7 @@ function gate(id) {
     <p class="mu">Enter the 4-digit project code <small class="blk">(ใส่รหัส 4 หลักเพื่อเข้าโครงการ)</small></p>
     <input id="gc" class="code big" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="••••" aria-label="Project code (รหัสโครงการ)" enterkeyhint="go" autofocus>
     <p class="ferr center" id="ge" role="alert"></p>
-    <div class="dfoot"><button type="button" class="btn ghost" data-a="mclose">Cancel (ยกเลิก)</button><button class="btn pri">Open (เข้าสู่โครงการ)</button></div></form>`, 'narrow kb');
+    <div class="dfoot"><button type="button" class="btn ghost" data-a="mclose">Cancel (ยกเลิก)</button></div></form>`, 'narrow kb');   // no Open button: the 4th digit opens the project (input handler)
   lockMsg(id, 'ge');
 }
 async function tryGate(id) {
