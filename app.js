@@ -365,7 +365,7 @@ function onData(k) {
 function drawTop() {
   const p = S.proj, el = $('#ptop'); if (!el) return;
   el.innerHTML = `<div class="phead">
-    <button class="icbtn" data-a="home" aria-label="Back to projects (กลับ)">${icon('back')}</button>
+    <button class="backbtn" data-a="home" aria-label="Back to projects (กลับหน้าหลัก)">${icon('back')}<span class="bt"><span>กลับ</span><span>หน้าหลัก</span></span></button>
     ${p.cover ? `<img class="pthumb" src="${esc(api.url(p.cover))}" alt="" data-a="zoom" data-src="${esc(api.url(p.cover))}">` : ''}
     <div class="ph-info"><h1 class="clip1 expand">${esc(p.name)}</h1><div class="ph-meta">${metaLines(p)}</div></div>
     <div class="pacts"><button class="btn ghost sm" data-a="editp" aria-label="Edit project (แก้ไขโครงการ)">${icon('edit')}<span class="hide-sm">Edit (แก้ไข)</span></button>

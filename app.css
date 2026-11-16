@@ -19,6 +19,8 @@ h1 small,h2 small{font-weight:400;color:var(--mu);font-size:.72em}
 p{margin:0}
 [hidden]{display:none!important}
 :focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+/* elements focused only by script or a tap (main #app, dialogs) never show a ring: older iOS WebKit drew it as a stray orange line */
+[tabindex="-1"]:focus{outline:none}
 .vh{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .skip{position:absolute;left:8px;top:-60px;z-index:99;background:var(--ac);color:var(--ac-ink);padding:8px 14px;border-radius:10px}
 .skip:focus{top:8px}
@@ -129,8 +131,9 @@ input[type=search]::-webkit-search-cancel-button{filter:invert(1)}
 .pc{display:flex;flex-direction:column;padding:0;border-radius:var(--r);border:1px solid var(--line);background:var(--surface);box-shadow:var(--sh);
   overflow:hidden;text-align:left;transition:border-color .15s}
 .pc:hover{border-color:var(--line-2)}
-.pc-cover{position:relative;display:grid;place-items:center;aspect-ratio:16/9;background:linear-gradient(135deg,var(--surface-2),var(--bg-2));color:var(--line-2)}
-.pc-cover img{width:100%;height:100%;object-fit:cover}
+.pc-cover{position:relative;display:grid;place-items:center;aspect-ratio:16/9;overflow:hidden;background:linear-gradient(135deg,var(--surface-2),var(--bg-2));color:var(--line-2)}
+/* images are pinned to their frame (absolute + inset 0): older iOS WebKit does not resolve height:100% inside an aspect-ratio box, so the photo spilled over the text below */
+.pc-cover img,.media>img,.media>.gtrack,.covpick img,.pvi img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .pc-lock{position:absolute;top:10px;right:10px;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:rgb(10 22 38/.7);color:var(--ac)}
 .pc-body{display:flex;flex-direction:column;flex:1 1 auto;gap:3px;min-width:0;padding:12px 14px 14px}
 .pc-name{font-size:1.08rem;margin-bottom:2px}
@@ -151,7 +154,10 @@ input[type=search]::-webkit-search-cancel-button{filter:invert(1)}
 /* project screen */
 .ptop{padding-bottom:6px}
 .phead{display:flex;align-items:center;gap:10px;min-width:0}
-.phead .icbtn{margin-left:-8px}
+.backbtn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;flex:none;align-self:center;width:46px;min-height:58px;padding:4px 2px;margin-left:-8px;border-radius:12px;border:1px solid var(--line-2);background:rgb(255 255 255/.05);color:var(--tx);font-size:.62rem;font-weight:600;line-height:1.2}
+.backbtn:hover{background:rgb(255 255 255/.1)}
+.backbtn .ic{width:20px;height:20px}
+.backbtn .bt{display:flex;flex-direction:column;align-items:center;white-space:nowrap}
 /* project photo keeps its original proportions (fixed height, natural width) */
 .pthumb{height:56px;width:auto;max-width:120px;border-radius:12px;object-fit:cover;flex:none;cursor:zoom-in;background:var(--bg-2)}
 .ph-info{flex:1;min-width:0}
@@ -164,13 +170,13 @@ input[type=search]::-webkit-search-cancel-button{filter:invert(1)}
 .pacts .btn{width:38px;min-height:38px;padding:0;border-radius:10px}
 @media (max-width:639px){
   .phead{gap:8px;align-items:flex-start}
-  .phead>.icbtn{width:32px;height:44px;margin-left:-8px;align-self:center}
-  .pthumb{height:48px;max-width:72px;align-self:center}
+
+  .pthumb{height:48px;max-width:60px;align-self:center}
   .ph-info h1{font-size:1.08rem;line-height:1.3;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere}
   .ph-meta{flex-direction:column}
   .ph-meta .meta{font-size:.78rem}
 }
-@media (min-width:640px){.pacts{flex-direction:row;gap:8px}.pacts .btn{width:auto;padding:7px 12px}}
+@media (min-width:640px){.backbtn{flex-direction:row;width:auto;min-height:44px;padding:6px 14px 6px 10px;gap:6px;font-size:.9rem}.backbtn .bt{flex-direction:row;gap:0}.pacts{flex-direction:row;gap:8px}.pacts .btn{width:auto;padding:7px 12px}}
 
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:15;display:grid;grid-template-columns:repeat(3,1fr);
   padding:4px max(6px,env(safe-area-inset-left)) calc(4px + var(--safe-b)) max(6px,env(safe-area-inset-right));
@@ -213,7 +219,7 @@ body.in-proj{padding-bottom:calc(var(--nav) + var(--safe-b) + 8px)}
 /* fixed 4:3 frame: overflow:hidden stops a tall photo from stretching the card (min-height:auto → 0) */
 .media{position:relative;aspect-ratio:4/3;overflow:hidden;background:var(--bg-2)}
 .gtrack img{height:100%;object-fit:cover}
-.media img{width:100%;height:100%;object-fit:cover;cursor:zoom-in}
+.media img{object-fit:cover;cursor:zoom-in}
 .pdfph{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:100%;border:0;color:var(--ac);font-weight:700;letter-spacing:2px}
 .gtrack{display:flex;height:100%;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain}
 .gtrack::-webkit-scrollbar{display:none}
@@ -253,9 +259,8 @@ body.in-proj{padding-bottom:calc(var(--nav) + var(--safe-b) + 8px)}
 .form.gate .dfoot,.confirm .dfoot{align-self:stretch;margin:14px -20px 0}
 .gate-ic{display:grid;place-items:center;width:62px;height:62px;margin:0 auto 4px;border-radius:50%;background:rgb(232 169 63/.14);color:var(--ac)}
 .gate-ic.danger{background:rgb(239 111 102/.14);color:var(--dn)}
-.covpick{display:grid;place-items:center;aspect-ratio:16/9;border-radius:var(--r-sm);border:1px dashed var(--line-2);background:var(--bg-2);overflow:hidden;color:var(--mu);font-size:.88rem}
+.covpick{position:relative;display:grid;place-items:center;aspect-ratio:16/9;border-radius:var(--r-sm);border:1px dashed var(--line-2);background:var(--bg-2);overflow:hidden;color:var(--mu);font-size:.88rem}
 .covpick span{display:flex;flex-direction:column;align-items:center;gap:6px}
-.covpick img{width:100%;height:100%;object-fit:cover}
 .warn{display:flex;gap:10px;margin-bottom:14px;padding:12px;border-radius:var(--r-sm);background:rgb(239 111 102/.1);color:#ffc2bd;font-size:.92rem}
 .warn .ic{color:var(--dn)}
 .warn p{flex:1;min-width:0}
@@ -272,7 +277,6 @@ body.in-proj{padding-bottom:calc(var(--nav) + var(--safe-b) + 8px)}
 .pv{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:8px;margin-top:10px}
 .pv:empty{display:none}
 .pvi{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;aspect-ratio:1;border-radius:10px;overflow:hidden;background:var(--bg-2);color:var(--ac);font-size:.75rem;font-weight:700}
-.pvi img{width:100%;height:100%;object-fit:cover}
 .pvi button{position:absolute;top:4px;right:4px;display:grid;place-items:center;width:26px;height:26px;padding:0;border:0;border-radius:50%;background:rgb(0 0 0/.65);color:#fff}
 .pvc{grid-column:1/-1;font-size:.8rem}
 .combo{position:relative}
