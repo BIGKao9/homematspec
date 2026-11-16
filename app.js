@@ -794,7 +794,8 @@ document.addEventListener('scroll', e => {
 /* ---------- boot ---------- */
 (async () => {
   const d = dlg();
-  d.addEventListener('close', cleanupModal);
+  // the close event arrives a task later: skip cleanup if another dialog was opened in the meantime (it would wipe the new content)
+  d.addEventListener('close', () => { if (!d.open) cleanupModal(); });
   d.addEventListener('click', e => { if (e.target === d) closeModal(); });
   $('#txt').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.close(); });
   $('#lb').addEventListener('click', e => { if (!e.target.closest('[data-a]') || e.target === $('#lb')) $('#lb').close(); });
