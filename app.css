@@ -310,8 +310,11 @@ body.in-proj{padding-bottom:calc(var(--nav) + var(--safe-b) + 8px)}
 .credits dt{color:var(--mu);font-size:.82rem;margin-bottom:2px}
 .credits dd{margin:0;font-weight:600;font-size:1.02rem}
 .dlg.full{width:min(100% - 24px,980px);height:min(92dvh,1100px)}
-.pgs{flex:1 1 auto;min-height:0;overflow:auto;padding:8px;background:#5d6b7c}
-.pgs canvas{display:block;width:100%;height:auto;margin:0 auto 8px;background:#fff;box-shadow:0 2px 10px rgb(0 0 0/.35)}
+.pgs{flex:1 1 auto;min-height:0;overflow:auto;padding:8px;background:#5d6b7c;display:flex;flex-direction:column}
+.pgs::before,.pgs::after{content:"";flex:1 0 0}   /* centers a short drawing; collapses to 0 when pages overflow */
+.pgbtn{display:block;flex:none;width:100%;margin:0 0 8px;padding:0;border:0;border-radius:0;background:#fff;box-shadow:0 2px 10px rgb(0 0 0/.35);cursor:zoom-in}
+.pgbtn:last-of-type{margin-bottom:0}
+.pgbtn img{display:block;width:100%;height:auto}
 .pgs .ferr,.pgs .mu{color:#fff;padding:20px}
 
 /* lightbox */
@@ -371,7 +374,7 @@ body.in-proj .toast{bottom:calc(var(--nav) + var(--safe-b) + 14px)}
   .gnav{width:30px;height:30px}
   .dlg,.dlg.narrow,.dlg.wide{width:100%;max-width:100%;margin:auto 0 0;border-radius:22px 22px 0 0;border-bottom:0;max-height:92vh;max-height:92dvh}
   .dlg::before{content:"";display:block;flex:none;width:40px;height:5px;margin:8px auto 0;border-radius:99px;background:var(--line-2)}
-  .dlg.full{height:100dvh;max-height:100dvh;border-radius:0}
+  .dlg.full{width:100%;margin:0;border:0;border-radius:0;height:100vh;height:100dvh;max-height:100vh;max-height:100dvh}
   .dlg.full::before{display:none}
   /* code-entry dialogs sit at the top, so the on-screen keyboard never covers the input or the Open button */
   .dlg.kb{width:calc(100% - 24px);margin:max(12px,env(safe-area-inset-top)) auto auto;border-radius:20px;border-bottom:1px solid var(--line-2);max-height:calc(100vh - 24px);max-height:calc(100dvh - 24px)}
@@ -451,6 +454,10 @@ html[data-fs="xl"]{font-size:125%}
 .l-hide{display:none!important}
 .l-main{font-size:inherit!important;font-weight:inherit!important;color:inherit!important;opacity:1!important}
 small.blk{display:block}
+/* the Thai half of "English (ไทย)" moves to the next line whole instead of breaking mid-word (trPair/keepPairs in app.js) */
+.pair{display:inline-block}
+button .pair{white-space:nowrap}
+small.thp{font:inherit;color:inherit;opacity:1}
 html[data-lang="en"] .pr-en{display:inline!important}
 @media (min-width:640px){.pr:not(.l-main)::before{content:"("}.pr:not(.l-main)::after{content:")"}}
 @media (max-width:639px){.brand b{font-size:1.22rem}.aboutbtn{min-width:38px;height:38px;padding:0 8px}.hdr{gap:8px}}

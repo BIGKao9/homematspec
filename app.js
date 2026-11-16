@@ -210,7 +210,7 @@ function markSeen() { if (S.proj && S.tab === 'chat' && S.chat.length) { LS.set(
 
 /* ---------- dialogs ---------- */
 const dlg = () => $('#dlg');
-let covUrl = '', pendCover, picked = [], pdfTok = 0;
+let covUrl = '', pendCover, picked = [], pdfTok = 0, pdfUrls = [];
 function openModal(html, cls = '') {
   const d = dlg(); d.className = 'dlg ' + cls; d.innerHTML = html;
   if (!d.open) d.showModal();
@@ -227,6 +227,7 @@ function showFull(text) {
 function cleanupModal() {
   picked.forEach(p => p.u && URL.revokeObjectURL(p.u)); picked = [];
   if (covUrl) { URL.revokeObjectURL(covUrl); covUrl = ''; }
+  pdfUrls.forEach(u => URL.revokeObjectURL(u)); pdfUrls = [];
   pdfTok++; dlg().innerHTML = '';
 }
 
@@ -665,14 +666,20 @@ async function pdfView(x) {
     if (!window.pdfjsLib) { await loadJs(LIB.pdf); pdfjsLib.GlobalWorkerOptions.workerSrc = LIB.pdfWorker; }
     const buf = await (await fetch(api.url(x.asset))).arrayBuffer(), doc = await pdfjsLib.getDocument({ data: buf }).promise;
     if (!live()) return; box.innerHTML = '';
-    const w = Math.max(280, box.clientWidth - 16), dpr = Math.min(2, devicePixelRatio || 1);
+    // pages render at 2x the screen's pixel density so pinch-zoom stays sharp; 12 MP stays under the iOS canvas limit
+    const w = Math.max(280, box.clientWidth - 16), px = Math.min(3, devicePixelRatio || 1) * 2;
     for (let n = 1; n <= doc.numPages; n++) {
       if (!live()) return;
-      const pg = await doc.getPage(n), v1 = pg.getViewport({ scale: 1 }); let sc = w / v1.width * dpr;
-      const area = v1.width * v1.height * sc * sc; if (area > 8e6) sc *= Math.sqrt(8e6 / area);
-      const v = pg.getViewport({ scale: sc }), c = document.createElement('canvas');
-      c.width = Math.floor(v.width); c.height = Math.floor(v.height); box.append(c);
+      const pg = await doc.getPage(n), v1 = pg.getViewport({ scale: 1 }); let sc = w / v1.width * px;
+      const area = v1.width * v1.height * sc * sc; if (area > 12e6) sc *= Math.sqrt(12e6 / area);
+      const v = pg.getViewport({ scale: sc }), c = document.createElement('canvas'), cw = Math.floor(v.width), ch = Math.floor(v.height);
+      c.width = cw; c.height = ch;
       await pg.render({ canvasContext: c.getContext('2d'), viewport: v }).promise; pg.cleanup();
+      const blob = await new Promise(r => c.toBlob(r, 'image/png')); c.width = c.height = 0;   // an <img> lets the browser free the bitmap; a canvas would hold it
+      if (!blob) throw new Error('render');
+      if (!live()) return;
+      const u = URL.createObjectURL(blob); pdfUrls.push(u);
+      box.insertAdjacentHTML('beforeend', `<button class="pgbtn" data-a="zoom" data-src="${u}" aria-label="Zoom page ${n} (ขยายหน้า ${n})"><img src="${u}" width="${cw}" height="${ch}" alt=""></button>`);
     }
   } catch { if (live()) box.innerHTML = '<p class="ferr center">เปิดดูไฟล์นี้ไม่ได้ ลองกดดาวน์โหลดแทน (Cannot preview, try Download)</p>'; }
 }
@@ -795,7 +802,7 @@ function trPair(sm, mode) {                      // "English <small>ไทย</s
   const ptxt = prev.nodeType === 3 ? (prev.__o ?? prev.nodeValue) : (prev.nodeType === 1 && !prev.children.length ? (prev.__o ?? prev.textContent) : '');
   const raw = sm.__o ?? sm.textContent;
   if (!RX_LAT.test(ptxt) || RX_TH.test(ptxt) || !RX_TH.test(raw) || RX_LAT.test(raw)) return;
-  sm.__o = raw; prev.__o = ptxt; prev.__pair = true;
+  sm.__o = raw; prev.__o = ptxt; prev.__pair = true; sm.classList.add('pair');   // .pair: the Thai never splits across lines
   sm.classList.toggle('l-hide', mode === 'en'); sm.classList.toggle('l-main', mode === 'th');
   const st = mode === 'th' ? raw.replace(/^\s*\(\s*|\s*\)\s*$/g, '') : raw; if (sm.textContent !== st) sm.textContent = st;
   if (prev.nodeType === 3) { const v = mode === 'th' ? '' : ptxt; if (prev.nodeValue !== v) prev.nodeValue = v; }
@@ -807,8 +814,24 @@ function trNode(n, mode) {
   const v = trText(n.__o, mode); if (n.nodeValue !== v) n.nodeValue = v;
 }
 const TR_SKIP = 'script,style,textarea,input,svg';
+/* Thai has no spaces, so on a narrow screen the browser may break "Open (เข้าสู่โครงการ)" in the middle of
+   the Thai. In buttons and labels the "(ไทย)" part goes into a <small class="thp">; trPair then handles it like
+   any other "English <small>ไทย</small>" pair and marks it .pair, which keeps it on one line (app.css). */
+const RX_TAIL = /^([^()฀-๿]*[A-Za-z][^()฀-๿]*?)\s*(\([^()A-Za-z]*[฀-๿][^()A-Za-z]*\))\s*$/;
+function keepPairs(root) {
+  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), hits = [];
+  for (let n = w.nextNode(); n; n = w.nextNode()) {
+    const p = n.parentElement;
+    if (p && RX_TAIL.test(n.nodeValue) && p.closest('button,label,.empty b') &&!p.closest('.tp,select,' + TR_SKIP)) hits.push(n);
+  }
+  for (const n of hits) {
+    const [, en, th] = n.nodeValue.match(RX_TAIL), sp = document.createElement('span'), sm = document.createElement('small');
+    sp.className = 'tp'; sm.className = 'thp'; sm.textContent = th; sp.append(en + ' ', sm); n.replaceWith(sp);
+  }
+}
 function tr(root, mode = langMode()) {
   if (!root || !root.parentNode) return;
+  if (mode === 'both') keepPairs(root.nodeType === 1 ? root : root.parentElement);
   if (root.nodeType === 3) { if (!root.parentElement?.closest(TR_SKIP)) trNode(root, mode); return; }
   if (root.nodeType !== 1 || root.closest(TR_SKIP)) return;
   (root.matches('small') ? [root] : [...root.querySelectorAll('small')]).forEach(s => trPair(s, mode));
@@ -820,7 +843,7 @@ function tr(root, mode = langMode()) {
     const v = trText(e[k], mode); if (e.getAttribute(a) !== v) e.setAttribute(a, v);
   }
 }
-new MutationObserver(ms => { const mode = langMode(); if (mode === 'both') return; for (const m of ms) m.addedNodes.forEach(n => tr(n, mode)); })
+new MutationObserver(ms => { const mode = langMode(); for (const m of ms) m.addedNodes.forEach(n => tr(n, mode)); })
   .observe(document.body, { childList: true, subtree: true });
 
 /* ---------- events ---------- */
@@ -919,7 +942,7 @@ document.addEventListener('scroll', e => {
     return;
   }
   home();
-  if (langMode() !== 'both') tr(document.body);
+  tr(document.body);
   api.watch('projects', rows => {
     S.loaded = true; S.projects = rows.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
     if (!S.proj) return drawProjects();
