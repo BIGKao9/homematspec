@@ -241,7 +241,7 @@ function drawProjects() {
   const el = $('#plist'); if (!el) return;
   const q = S.q.trim().toLowerCase(), rows = S.projects.filter(p => !q || [p.name, p.owner, p.contractor, p.location].some(v => (v || '').toLowerCase().includes(q)));
   $('#pcount').textContent = S.projects.length ? `${S.projects.length} project${S.projects.length > 1 ? 's' : ''} (${S.projects.length} โครงการ)` : '';
-  $('.search').hidden = S.projects.length < 4;
+  $('.search').hidden = !S.projects.length;
   if (!S.projects.length) { el.innerHTML = empty('folder', 'No projects yet (ยังไม่มีโครงการ)', 'Tap “Create Project” to start (กดสร้างโครงการเพื่อเริ่มต้น)'); return; }
   if (!rows.length) { el.innerHTML = empty('search', 'No matching projects (ไม่พบโครงการ)'); return; }
   el.innerHTML = rows.map(p => `<article class="pc">
