@@ -234,13 +234,13 @@ body.in-proj{padding-bottom:calc(var(--nav) + var(--safe-b) + 8px)}
 .dlg{width:min(100% - 24px,520px);max-height:88vh;max-height:min(88dvh,820px);padding:0;border:1px solid var(--line-2);border-radius:20px;background:var(--surface);color:var(--tx);box-shadow:0 30px 80px -20px rgb(0 0 0/.8);overflow:hidden;overscroll-behavior:contain}
 .dlg.narrow{width:min(100% - 24px,420px)}
 .dlg.wide{width:min(100% - 24px,580px)}
-.dlg[open]{display:flex;flex-direction:column;animation:dlg-in .2s ease-out}
+/* dialogs appear in their final place with no entry animation: some in-app browsers (Messenger, Instagram) stall the animation clock, which left the sheet stuck off-screen */
+.dlg[open]{display:flex;flex-direction:column}
 /* no 0% flex-basis in dialogs: older iOS WebKit (in-app browsers) sizes such children to 0 and the dialog collapses to a thin bar */
 .dlg>*{display:flex;flex-direction:column;min-height:0;flex:0 1 auto}
 .dlg.full>*{flex:1 1 auto}
 .dlg:focus,.dlg:focus-visible{outline:none}
 .dlg::backdrop{background:rgb(4 10 20/.6);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
-@keyframes dlg-in{from{opacity:0;transform:translateY(12px) scale(.98)}}
 .dhead{display:flex;flex-direction:row!important;align-items:center;gap:8px;flex:none!important;padding:12px 12px 12px 20px;border-bottom:1px solid var(--line)}
 .dhead h2{flex:1;min-width:0;font-size:1.12rem}
 .dbody{flex:0 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;padding:18px 20px 6px;-webkit-overflow-scrolling:touch}
@@ -362,18 +362,15 @@ body.in-proj .toast{bottom:calc(var(--nav) + var(--safe-b) + 14px)}
   .item .acts .icbtn{width:36px;height:36px}
   .gnav{width:30px;height:30px}
   .dlg,.dlg.narrow,.dlg.wide{width:100%;max-width:100%;margin:auto 0 0;border-radius:22px 22px 0 0;border-bottom:0;max-height:92vh;max-height:92dvh}
-  .dlg[open]{animation:sheet-in .25s cubic-bezier(.2,.8,.2,1)}
   .dlg::before{content:"";display:block;flex:none;width:40px;height:5px;margin:8px auto 0;border-radius:99px;background:var(--line-2)}
   .dlg.full{height:100dvh;max-height:100dvh;border-radius:0}
   .dlg.full::before{display:none}
   /* code-entry dialogs sit at the top, so the on-screen keyboard never covers the input or the Open button */
   .dlg.kb{width:calc(100% - 24px);margin:max(12px,env(safe-area-inset-top)) auto auto;border-radius:20px;border-bottom:1px solid var(--line-2);max-height:calc(100vh - 24px);max-height:calc(100dvh - 24px)}
-  .dlg.kb[open]{animation:dlg-in .2s ease-out}
   .dlg.kb::before{display:none}
   .dlg.kb .dfoot{padding-bottom:14px}
   .brand small{max-width:52vw}
 }
-@keyframes sheet-in{from{transform:translateY(100%)}}
 
 /* tablet & desktop */
 @media (min-width:640px){
