@@ -27,7 +27,7 @@ const TABS = [['photos', 'Site Photos', 'รูปวัสดุหน้าง
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const fmt = (t, o) => t ? new Date(t).toLocaleString('th-TH', o) : '-';
+const fmt = (t, o) => t ? new Date(t).toLocaleString(document.documentElement.lang === 'en' ? 'en-GB' : 'th-TH', o) : '-';
 const rid = p => p + Date.now().toString(36) + crypto.getRandomValues(new Uint32Array(2)).reduce((a, n) => a + n.toString(36), '');
 const parentOf = p => p.slice(0, p.lastIndexOf('/'));
 const leafOf = p => p.slice(p.lastIndexOf('/') + 1);
@@ -246,7 +246,7 @@ function drawProjects() {
   if (!rows.length) { el.innerHTML = empty('search', 'No matching projects (ไม่พบโครงการ)'); return; }
   el.innerHTML = rows.map(p => `<article class="pc">
     <div class="pc-cover">${p.cover ? `<img src="${esc(api.url(p.cover))}" alt="" loading="lazy" decoding="async">` : icon('home', 'xl')}<span class="pc-lock">${icon('lock', 'xs')}</span></div>
-    <div class="pc-body"><h2 class="pc-name clip1 expand">${esc(p.name)}</h2>${metaLines(p)}<small class="mu">Created ${fmt(p.createdAt, { dateStyle: 'medium' })} (สร้างเมื่อ)</small>
+    <div class="pc-body"><h2 class="pc-name clip1 expand">${esc(p.name)}</h2>${metaLines(p)}<small class="mu">Created <small>(สร้างเมื่อ)</small> ${fmt(p.createdAt, { dateStyle: 'medium' })}</small>
       <button class="btn pri pc-open" data-a="open" data-id="${esc(p.id)}">${icon('lock')}<span>Open project <small>(เข้าโครงการ)</small></span></button></div></article>`).join('');
 }
 
@@ -304,7 +304,7 @@ function gate(id) {
   openModal(`<form class="form gate" data-f="gate" data-id="${esc(id)}" novalidate>
     <button type="button" class="icbtn close" data-a="mclose" aria-label="Close (ปิด)">${icon('x')}</button>
     <div class="gate-ic">${icon('lock', 'lg')}</div><h2 class="clip1 expand">${esc(p.name)}</h2>
-    <p class="mu">Enter the 4-digit project code<br>(ใส่รหัส 4 หลักเพื่อเข้าโครงการ)</p>
+    <p class="mu">Enter the 4-digit project code <small class="blk">(ใส่รหัส 4 หลักเพื่อเข้าโครงการ)</small></p>
     <input id="gc" class="code big" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="••••" aria-label="Project code (รหัสโครงการ)" enterkeyhint="go" autofocus>
     <p class="ferr center" id="ge" role="alert"></p>
     <div class="dfoot"><button type="button" class="btn ghost" data-a="mclose">Cancel (ยกเลิก)</button><button class="btn pri">Open (เข้าสู่โครงการ)</button></div></form>`, 'narrow kb');
@@ -407,7 +407,7 @@ function card(x, ph) {
     <div class="in">${ph && CATS[x.cat] ? `<span class="tag clip1">${esc(CATS[x.cat])}</span>` : ''}
       <b class="clip1 expand">${esc(x.item || '(ไม่ระบุชื่อ)')}</b><time class="mu">${fmt(x.at, { dateStyle: 'medium', timeStyle: 'short' })}</time>
       ${x.note ? `<p class="note clip2 expand">${esc(x.note)}</p>` : ''}
-      <div class="acts">${pdf ? `<button class="btn ghost sm" data-a="viewpdf" ${i}>${icon('eye')}View (เปิดดู)</button>` : `<button class="btn ghost sm" data-a="dl" ${i}>${icon('download')}<span><span class="hide-sm">Save photo (</span>บันทึกรูป<span class="hide-sm">)</span></span></button>`}
+      <div class="acts">${pdf ? `<button class="btn ghost sm" data-a="viewpdf" ${i}>${icon('eye')}View (เปิดดู)</button>` : `<button class="btn ghost sm" data-a="dl" ${i}>${icon('download')}<span><span class="hide-sm pr-en">Save photo </span><small class="pr">บันทึกรูป</small></span></button>`}
       <button class="icbtn" data-a="more" ${i} aria-label="More actions (ตัวเลือกเพิ่มเติม)">${icon('more')}</button></div></div></article>`;
 }
 function drawList() {
@@ -665,7 +665,7 @@ async function pdfView(x) {
 }
 function about() {
   openModal(`<div class="aboutbox"><div class="dhead"><h2>About <small>(เกี่ยวกับ)</small></h2><button class="icbtn" data-a="mclose" aria-label="Close (ปิด)">${icon('x')}</button></div>
-    <div class="dbody"><img src="logo.png" width="96" height="96" alt="" class="about-logo"><h3>Home Material Spec</h3><p class="mu sub">Material & Spec Check<br>(ตรวจวัสดุและสเปกงานก่อสร้าง)</p>
+    <div class="dbody"><img src="logo.png" width="96" height="96" alt="" class="about-logo"><h3>Home Material Spec</h3><p class="mu sub">Material & Spec Check <small class="blk">(ตรวจวัสดุและสเปกงานก่อสร้าง)</small></p>
     <dl class="credits"><div><dt>Advisor (อาจารย์ที่ปรึกษา)</dt><dd>อาจารย์ศรันยู พรมศร</dd></div><div><dt>Developed by (จัดทำโดย)</dt><dd>นายวสุพล เปี่ยมจิตร</dd><dd>นายสุชาวัฒน์ นิสังกาศ</dd></div></dl></div></div>`, 'narrow');
 }
 
@@ -711,6 +711,105 @@ async function chatSend() {
   busy(b, false); if (!coarse()) t.focus();
 }
 
+/* ---------- display settings: text size, indoor/outdoor theme, language ----------
+   Stored per device in localStorage and applied before first paint by prefs.js. */
+const PREFS = { fs: ['hms_fs', 'm'], theme: ['hms_theme', 'dark'], lang: ['hms_lang', 'both'] };
+function settings() {
+  const ds = document.documentElement.dataset, cur = k => ds[k] || PREFS[k][1];
+  const opt = (k, v, label) => `<button type="button" class="opt" data-a="pref" data-k="${k}" data-v="${v}" aria-pressed="${cur(k) === v}">${label}</button>`;
+  openModal(`<div class="setbox"><div class="dhead"><h2>Settings <small>(ตั้งค่า)</small></h2><button class="icbtn" data-a="mclose" aria-label="Close (ปิด)">${icon('x')}</button></div>
+    <div class="dbody">
+      <div class="sgroup"><span class="lbl">Text size (ขนาดตัวอักษร)</span><div class="seg3">${opt('fs', 'm', '<b class="fs1">ก</b>Normal (ปกติ)')}${opt('fs', 'l', '<b class="fs2">ก</b>Large (ใหญ่)')}${opt('fs', 'xl', '<b class="fs3">ก</b>Extra large (ใหญ่มาก)')}</div></div>
+      <div class="sgroup"><span class="lbl">Theme (ธีมสี)</span><div class="seg2">${opt('theme', 'dark', icon('moon') + 'Indoor (ในร่ม)')}${opt('theme', 'light', icon('sun') + 'Outdoor (กลางแจ้ง)')}</div></div>
+      <div class="sgroup"><span class="lbl">Language (ภาษา)</span><div class="seg3">${opt('lang', 'both', 'EN + ไทย')}${opt('lang', 'th', 'ไทย')}${opt('lang', 'en', 'English')}</div></div>
+      <p class="mu center sm">Saved on this device (จำค่าไว้ในเครื่องนี้)</p></div></div>`, 'narrow');
+}
+function setPref(k, v) {
+  const d = document.documentElement, [key, def] = PREFS[k];
+  if (v === def) { d.removeAttribute('data-' + k); LS.del(key); } else { d.setAttribute('data-' + k, v); LS.set(key, v); }
+  if (k === 'theme') $('meta[name=theme-color]').content = v === 'light' ? '#ffffff' : '#0e1d31';
+  $$(`#dlg [data-a=pref][data-k="${k}"]`).forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === v)));
+  if (k === 'lang') {
+    d.lang = v === 'en' ? 'en' : 'th';
+    if (S.proj) { drawTop(); drawTabs(); drawView(); } else drawProjects();   // dates follow the language
+    tr(document.body);
+  }
+}
+
+/* ---------- language modes: both (EN + ไทย), th, en ----------
+   UI strings are written bilingually: "English (ไทย)", "ไทย (English)", or "English <small>ไทย</small>".
+   A non-default mode rewrites the rendered text in place and keeps the original on the node, so
+   templates stay single-sourced and switching back restores them. Thai-only system messages get an
+   English line from TH2EN. User-entered data is only touched when it follows the same pattern. */
+const langMode = () => document.documentElement.dataset.lang || 'both';
+const RX_TH = /[฀-๿]/, RX_LAT = /[A-Za-z]/;
+const RX_PAIR = /([^()\n฀-๿]*?[A-Za-z][^()\n฀-๿]*?)\s*\(([^()]*?[฀-๿][^()]*?)\)/g;
+const RX_REV = /([^()\n]*?[฀-๿][^()\nA-Za-z]*?)\s*\(([^()฀-๿]*?[A-Za-z][^()฀-๿]*?)\)/g;
+const TH2EN = [
+  ['กลับ', 'Back'], ['หน้าหลัก', 'Home'], ['(ไม่ระบุชื่อ)', '(untitled)'],
+  [/^รหัสไม่ถูกต้อง \(เหลืออีก (\d+) ครั้ง\)$/, 'Wrong code ($1 tries left)'],
+  [/^ใส่รหัสผิดหลายครั้ง กรุณารอ (\d+) วินาที$/, 'Too many wrong codes. Wait $1 s'],
+  [/^แตะเพื่อถ่ายหรือเลือกรูป(.*)$/, 'Tap to take or choose photos$1'], [/^แตะเพื่อเลือกไฟล์(.*)$/, 'Tap to choose files$1'],
+  ['รูป แบบก่อสร้าง และแชททั้งหมดของ', 'All photos, drawings and chat of'], ['จะถูกลบถาวร กู้คืนไม่ได้', 'will be deleted for good'],
+  ['รายการนี้และไฟล์ทั้งหมดจะถูกลบถาวร กู้คืนไม่ได้', 'This item and its files will be deleted for good'],
+  ['กรุณาตั้งชื่อโครงการ', 'Enter a project name'], ['รหัสต้องเป็นตัวเลข 4 หลัก', 'The code must be 4 digits'],
+  ['กรุณาเลือกรูปก่อน', 'Choose a photo first'], ['กรุณาเลือกไฟล์ก่อน', 'Choose a file first'], ['กรุณาใส่ชื่อ', 'Enter a name'],
+  ['กำลังโหลดข้อมูล กรุณารอสักครู่แล้วลองใหม่', 'Still loading, try again in a moment'],
+  ['บันทึกรูปไม่สำเร็จ', 'Could not save the photo'], ['บันทึก PDF ไม่สำเร็จ', 'Could not save the PDF'], ['บันทึกไม่สำเร็จ', 'Could not save'],
+  ['รายการนี้ถูกลบไปแล้ว', 'This item was deleted'], ['ลบไม่สำเร็จ ลองอีกครั้ง', 'Could not delete, try again'], ['ลบไม่สำเร็จ', 'Could not delete'],
+  ['สร้างโครงการไม่สำเร็จ', 'Could not create the project'], ['ส่งข้อความไม่สำเร็จ', 'Could not send the message'],
+  ['เกิดข้อผิดพลาด ลองอีกครั้ง', 'Something went wrong, try again'], ['โหลดข้อมูลไม่สำเร็จ', 'Could not load data'],
+  ['โหลดโครงการไม่สำเร็จ', 'Could not load projects'], ['ไฟล์นี้ไม่ใช่รูปภาพที่รองรับ', 'This file is not a supported image'],
+  ['ไฟล์ใหญ่เกิน 25 MB', 'File is larger than 25 MB'], ['แปลงรูปไม่สำเร็จ', 'Could not convert the image'],
+  ['เชื่อมต่อฐานข้อมูลไม่สำเร็จ ตรวจสอบอินเทอร์เน็ตแล้วรีเฟรชหน้า', 'Could not reach the database. Check your internet and refresh'],
+  ['เช่น บ้านคุณสมชาย ซอยลาดพร้าว 71', 'e.g. Somchai house, Lat Phrao 71'], ['เช่น คุณสมชาย ใจดี', 'e.g. Somchai Jaidee'],
+  ['เช่น บริษัท รับเหมา จำกัด', 'e.g. ABC Construction Co., Ltd.'], ['เช่น ซอยลาดพร้าว 71 กรุงเทพฯ', 'e.g. Lat Phrao 71, Bangkok'],
+  ['เช่น ขนาด ยี่ห้อ ล็อตที่ส่งมา ตำแหน่งที่ใช้', 'e.g. size, brand, lot, where it is used'],
+  ['พิมพ์หรือเลือกจากรายการ', 'Type or pick from the list'], ['ถ้าไม่ใส่ จะใช้ชื่อไฟล์', 'Leave empty to use the file name']
+];
+function trText(s, mode) {
+  if (mode === 'both' || !s || !RX_TH.test(s)) return s;
+  s = s.replace(RX_PAIR, (m, en, th) => mode === 'en' ? en.replace(/\s+$/, '') : en.match(/^\s*/)[0] + th.trim())
+       .replace(RX_REV, (m, th, en) => mode === 'en' ? th.match(/^\s*/)[0] + en.trim() : th.replace(/\s+$/, ''));
+  if (mode === 'en' && RX_TH.test(s)) {
+    const k = s.trim();
+    for (const [a, b] of TH2EN) if (typeof a === 'string' ? a === k : a.test(k)) { s = s.replace(k, typeof a === 'string' ? b : k.replace(a, b)); break; }
+  }
+  return s;
+}
+function trPair(sm, mode) {                      // "English <small>ไทย</small>" (the small may hold "(ไทย)")
+  const prev = sm.previousSibling; if (!prev) return;
+  const ptxt = prev.nodeType === 3 ? (prev.__o ?? prev.nodeValue) : (prev.nodeType === 1 && !prev.children.length ? (prev.__o ?? prev.textContent) : '');
+  const raw = sm.__o ?? sm.textContent;
+  if (!RX_LAT.test(ptxt) || RX_TH.test(ptxt) || !RX_TH.test(raw) || RX_LAT.test(raw)) return;
+  sm.__o = raw; prev.__o = ptxt; prev.__pair = true;
+  sm.classList.toggle('l-hide', mode === 'en'); sm.classList.toggle('l-main', mode === 'th');
+  const st = mode === 'th' ? raw.replace(/^\s*\(\s*|\s*\)\s*$/g, '') : raw; if (sm.textContent !== st) sm.textContent = st;
+  if (prev.nodeType === 3) { const v = mode === 'th' ? '' : ptxt; if (prev.nodeValue !== v) prev.nodeValue = v; }
+  else prev.classList.toggle('l-hide', mode === 'th');
+}
+function trNode(n, mode) {
+  if (n.__pair) return;
+  if (n.__o === undefined) { if (mode === 'both') return; n.__o = n.nodeValue; }
+  const v = trText(n.__o, mode); if (n.nodeValue !== v) n.nodeValue = v;
+}
+const TR_SKIP = 'script,style,textarea,input,svg';
+function tr(root, mode = langMode()) {
+  if (!root || !root.parentNode) return;
+  if (root.nodeType === 3) { if (!root.parentElement?.closest(TR_SKIP)) trNode(root, mode); return; }
+  if (root.nodeType !== 1 || root.closest(TR_SKIP)) return;
+  (root.matches('small') ? [root] : [...root.querySelectorAll('small')]).forEach(s => trPair(s, mode));
+  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  for (let n = w.nextNode(); n; n = w.nextNode()) if (!n.parentElement.closest(TR_SKIP)) trNode(n, mode);
+  for (const e of [root, ...root.querySelectorAll('[placeholder],[aria-label],[title]')]) for (const a of ['placeholder', 'aria-label', 'title']) {
+    if (!e.hasAttribute(a)) continue;
+    const k = '__o_' + a; if (e[k] === undefined) { if (mode === 'both') continue; e[k] = e.getAttribute(a); }
+    const v = trText(e[k], mode); if (e.getAttribute(a) !== v) e.setAttribute(a, v);
+  }
+}
+new MutationObserver(ms => { const mode = langMode(); if (mode === 'both') return; for (const m of ms) m.addedNodes.forEach(n => tr(n, mode)); })
+  .observe(document.body, { childList: true, subtree: true });
+
 /* ---------- events ---------- */
 const A = {
   home: () => transition(home), about, newp: () => projForm(), open: d => gate(d.id), editp: () => projForm(S.proj), delp: delProjForm,
@@ -735,6 +834,8 @@ const A = {
   gprev: (d, el) => { const t = el.parentElement.querySelector('.gtrack'); t.scrollBy({ left: -t.clientWidth, behavior: 'smooth' }); },
   gnext: (d, el) => { const t = el.parentElement.querySelector('.gtrack'); t.scrollBy({ left: t.clientWidth, behavior: 'smooth' }); },
   mclose: closeModal,
+  settings,
+  pref: d => setPref(d.k, d.v),
   txtx: () => $('#txt').close(),
   pvrm: d => { const p = picked.splice(+d.i, 1)[0]; if (p?.u) URL.revokeObjectURL(p.u); drawPv(); },
   cbtn: () => { const c = $('#cl'); if (c && !c.hidden) hideList(); else showList(true); },
@@ -805,6 +906,7 @@ document.addEventListener('scroll', e => {
     return;
   }
   home();
+  if (langMode() !== 'both') tr(document.body);
   api.watch('projects', rows => {
     S.loaded = true; S.projects = rows.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
     if (!S.proj) return drawProjects();
