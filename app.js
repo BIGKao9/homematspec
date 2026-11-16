@@ -177,9 +177,14 @@ async function supabaseBackend() {
     const { data, error } = await sb.from('docs').select('path,data').eq('parent', parent).limit(5000);
     if (error) throw error; return data.map(r => ({ id: leafOf(r.path), ...r.data }));
   });
-  sb.channel('hms-docs').on('postgres_changes', { event: '*', schema: 'public', table: 'docs' }, pl => { const p = pl.new?.path || pl.old?.path; if (p) hub.kick(parentOf(p)); }).subscribe();
-  setInterval(hub.kickAll, 20000);
+  // realtime pushes every change; polling is only a fallback while the realtime link is down
+  let live = false;
+  sb.channel('hms-docs').on('postgres_changes', { event: '*', schema: 'public', table: 'docs' }, pl => { const p = pl.new?.path || pl.old?.path; if (p) hub.kick(parentOf(p)); })
+    .subscribe(status => { const was = live; live = status === 'SUBSCRIBED'; if (live && !was) hub.kickAll(); });   // resync after (re)connect
+  setInterval(() => { if (!live) hub.kickAll(); }, 20000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) hub.kickAll(); });
+  addEventListener('online', () => { toast('Back online (กลับมาออนไลน์แล้ว)', 'ok'); hub.kickAll(); });
+  addEventListener('offline', () => toast('No internet (ไม่มีอินเทอร์เน็ต) – changes will sync when back online', 'err'));
   const base = `${CONFIG.supabaseUrl}/storage/v1/object/public/${CONFIG.bucket}/`;
   const ok = ({ error }) => { if (error) throw error; };
   return {
@@ -490,15 +495,23 @@ function drawPv() {
   $('#drop')?.classList.toggle('has', picked.length > 0);
 }
 function prog(i, n) { const p = $('#prog'); if (!p) return; p.hidden = false; p.firstElementChild.style.width = Math.round((i / n) * 100) + '%'; }
+/* Photos are decoded one at a time (a 12 MP bitmap is ~50 MB, so this keeps phone memory low)
+   while up to 3 finished photos upload in parallel. On any failure every uploaded file is removed. */
 async function uploadPhotos(files, onStep) {
-  const full = [], th = [];
-  try {
-    for (let i = 0; i < files.length; i++) {
-      onStep(i, files.length); const r = await prepImage(files[i]);
-      full.push(await api.put(r.full)); th.push(await api.put(r.th));
-    }
-    onStep(files.length, files.length); return { full, th };
-  } catch (e) { [...full, ...th].forEach(a => api.remove(a).catch(() => { })); throw e; }
+  const full = [], th = [], made = [], inflight = []; let done = 0, err = null;
+  onStep(0, files.length);
+  for (let i = 0; i < files.length && !err; i++) {
+    let r; try { r = await prepImage(files[i]); } catch (e) { err = e; break; }
+    inflight.push(Promise.allSettled([api.put(r.full), api.put(r.th)]).then(([a, b]) => {
+      for (const x of [a, b]) if (x.status === 'fulfilled') made.push(x.value);
+      if (a.status === 'rejected' || b.status === 'rejected') { err = err || a.reason || b.reason; return; }
+      full[i] = a.value; th[i] = b.value; onStep(++done, files.length);
+    }));
+    if (inflight.length >= 3) await inflight.shift();
+  }
+  await Promise.all(inflight);
+  if (err) { made.forEach(id => api.remove(id).catch(() => { })); throw err; }
+  return { full, th };
 }
 async function saveAdd(btn) {
   const ph = S.tab === 'photos', files = picked.map(p => p.f), pid = S.proj.id;

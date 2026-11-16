@@ -11,4 +11,8 @@
     if (f === 'l' || f === 'xl') d.setAttribute('data-fs', f);
     if (l === 'th' || l === 'en') { d.setAttribute('data-lang', l); d.lang = l; }
   } catch (e) { /* storage blocked: keep defaults */ }
+  // Sarabun loads without blocking the app: the system Thai font shows until it arrives (display=swap)
+  var font = document.createElement('link'); font.rel = 'stylesheet';
+  font.href = 'https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap';
+  document.head.appendChild(font);
 })();
