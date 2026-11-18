@@ -48,7 +48,7 @@ function toast(msg, kind = '') {
   const t = $('#toast'); t.textContent = msg; t.className = 'toast show ' + kind;
   clearTimeout(toast.t); toast.t = setTimeout(() => { t.className = 'toast'; }, 3200);
 }
-function busy(b, on) { if (b) { b.disabled = on; b.classList.toggle('loading', on); } }
+function busy(b, on) { if (b) { b.disabled = on; b.classList.toggle('loading', on); b.form?.querySelectorAll('[data-a=mclose]').forEach(x => x.disabled = on); } }   // no Cancel/X while saving
 function invalid(id, msg) { const i = $('#' + id), e = $('#' + id + '-err'); if (e) e.textContent = msg; if (i) { i.setAttribute('aria-invalid', 'true'); i.focus(); } }
 function loadJs({ src, sri }) {
   return new Promise((ok, no) => {
@@ -210,9 +210,13 @@ function markSeen() { if (S.proj && S.tab === 'chat' && S.chat.length) { LS.set(
 
 /* ---------- dialogs ---------- */
 const dlg = () => $('#dlg');
-let covUrl = '', pendCover, picked = [], pdfTok = 0, pdfUrls = [];
+let covUrl = '', pendCover, picked = [], pdfTok = 0, pdfUrls = [], dirty = false;
+/* A dialog with entered data closes only by its own Cancel/X (Esc or Back asks first);
+   while a save or upload runs it cannot be closed at all. */
+const saving = () => !!dlg().querySelector('form .btn.loading');
+const canLeave = () => !saving() && (!dirty || confirm(trText('Discard what you entered? (ทิ้งข้อมูลที่กรอกไว้?)', langMode())));
 function openModal(html, cls = '') {
-  const d = dlg(); d.className = 'dlg ' + cls; d.innerHTML = html;
+  const d = dlg(); d.className = 'dlg ' + cls; d.innerHTML = html; dirty = false;
   if (!d.open) d.showModal();
   (d.querySelector('[autofocus]') || (coarse() ? d : d.querySelector('input:not([type=file]),textarea,select')) || d).focus?.({ preventScroll: true });
 }
@@ -371,7 +375,7 @@ function drawTop() {
   const p = S.proj, el = $('#ptop'); if (!el) return;
   el.innerHTML = `<div class="phead">
     <button class="backbtn" data-a="home" aria-label="Back to projects (กลับหน้าหลัก)">${icon('back')}<span class="bt"><span>กลับ</span><span>หน้าหลัก</span></span></button>
-    ${p.cover ? `<img class="pthumb" src="${esc(api.url(p.cover))}" alt="" data-a="zoom" data-src="${esc(api.url(p.cover))}">` : ''}
+    ${p.cover ? `<button type="button" class="pthumb" data-a="zoom" data-src="${esc(api.url(p.cover))}" aria-label="View project photo (ดูรูปโครงการ)"><img src="${esc(api.url(p.cover))}" alt=""></button>` : ''}
     <div class="ph-info"><h1 class="clip1 expand">${esc(p.name)}</h1><div class="ph-meta">${metaLines(p)}</div></div>
     <div class="pacts"><button class="btn ghost sm" data-a="editp" aria-label="Edit project (แก้ไขโครงการ)">${icon('edit')}<span class="hide-sm">Edit (แก้ไข)</span></button>
     <button class="btn danger sm" data-a="delp" aria-label="Delete project (ลบโครงการ)">${icon('trash')}<span class="hide-sm">Delete <small>(ลบโครงการ)</small></span></button></div></div>`;
@@ -483,7 +487,7 @@ function addPicked(files) {
   for (const f of files) {
     const img = f.type.startsWith('image/') || /\.(hei[cf]|jpe?g|png|webp|gif)$/i.test(f.name), pdf = !ph && (f.type === 'application/pdf' || /\.pdf$/i.test(f.name));
     if ((!img && !pdf) || f.size > MAX_FILE || picked.length >= MAX_PICK) { bad++; continue; }
-    picked.push({ f, u: img ? URL.createObjectURL(f) : '' });
+    picked.push({ f, u: img ? URL.createObjectURL(f) : '' }); dirty = true;
   }
   if (err) err.textContent = bad ? `ข้ามไป ${bad} ไฟล์ (ชนิดไม่รองรับ ใหญ่เกิน 25 MB หรือเกิน ${MAX_PICK} ไฟล์)` : '';
   drawPv();
@@ -848,7 +852,7 @@ new MutationObserver(ms => { const mode = langMode(); for (const m of ms) m.adde
 /* ---------- events ---------- */
 const A = {
   home: () => transition(home), about, newp: () => projForm(), open: d => gate(d.id), editp: () => projForm(S.proj), delp: delProjForm,
-  covrm: () => { pendCover = null; drawCov(''); },
+  covrm: () => { pendCover = null; dirty = true; drawCov(''); },
   tab: d => { if (S.tab === d.t) return; S.tab = d.t; drawTabs(); drawView(); if (coarse()) window.scrollTo(0, 0); },
   cat: d => { S.cat = +d.i; drawCats(); drawList(); $('#cats [aria-pressed=true]')?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }); },
   add: () => addForm(),
@@ -868,13 +872,13 @@ const A = {
   lbx: () => $('#lb').close(),
   gprev: (d, el) => { const t = el.parentElement.querySelector('.gtrack'); t.scrollBy({ left: -t.clientWidth, behavior: 'smooth' }); },
   gnext: (d, el) => { const t = el.parentElement.querySelector('.gtrack'); t.scrollBy({ left: t.clientWidth, behavior: 'smooth' }); },
-  mclose: closeModal,
+  mclose: () => { if (!saving()) closeModal(); },
   settings,
   pref: d => setPref(d.k, d.v),
   txtx: () => $('#txt').close(),
   pvrm: d => { const p = picked.splice(+d.i, 1)[0]; if (p?.u) URL.revokeObjectURL(p.u); drawPv(); },
   cbtn: () => { const c = $('#cl'); if (c && !c.hidden) hideList(); else showList(true); },
-  copt: d => { $('#fi').value = d.v; hideList(); },
+  copt: d => { $('#fi').value = d.v; dirty = true; hideList(); },
   role: d => { S.role = { r: d.r, n: val('cn') }; LS.set('hms_role_' + S.proj.id, JSON.stringify(S.role)); drawChat(); },
   crole: () => { S.role = null; LS.del('hms_role_' + S.proj.id); drawChat(); },
   cdel: async (d, el) => {
@@ -898,6 +902,7 @@ document.addEventListener('submit', e => {
 });
 document.addEventListener('input', e => {
   const t = e.target; t.removeAttribute('aria-invalid'); const fe = $('#' + t.id + '-err'); if (fe) fe.textContent = '';
+  if (t.closest('#dlg') && !t.classList.contains('code')) dirty = true;   // a typed code alone is not worth a "discard?" prompt
   if (t.classList.contains('code')) {
     // Thai (๐-๙) and full-width digits from phone keyboards count as digits; then keep 4 digits only
     const v = t.value.replace(/[๐-๙]/g, c => c.charCodeAt(0) - 0x0E50).replace(/[０-９]/g, c => c.charCodeAt(0) - 0xFF10).replace(/\D/g, '').slice(0, 4);
@@ -911,8 +916,9 @@ document.addEventListener('input', e => {
 document.addEventListener('change', e => {
   const t = e.target;
   if (t.id === 'ff') { addPicked(t.files); t.value = ''; }
-  else if (t.id === 'pcov') { const f = t.files[0]; t.value = ''; if (!f) return; if (!f.type.startsWith('image/') || f.size > MAX_FILE) return toast('กรุณาเลือกรูปภาพขนาดไม่เกิน 25 MB', 'err'); pendCover = f; if (covUrl) URL.revokeObjectURL(covUrl); covUrl = URL.createObjectURL(f); drawCov(covUrl); }
-  else if (t.id === 'fc') hideList();
+  else if (t.id === 'pcov') { const f = t.files[0]; t.value = ''; if (!f) return; if (!f.type.startsWith('image/') || f.size > MAX_FILE) return toast('กรุณาเลือกรูปภาพขนาดไม่เกิน 25 MB', 'err'); pendCover = f; dirty = true; if (covUrl) URL.revokeObjectURL(covUrl); covUrl = URL.createObjectURL(f); drawCov(covUrl); }
+  else if (t.id === 'fc') { dirty = true; hideList(); }
+  else if (t.closest('#dlg')) dirty = true;
 });
 document.addEventListener('keydown', e => {
   if (e.target.id === 'ct' && e.key === 'Enter' && !e.shiftKey && !e.isComposing && !coarse()) { e.preventDefault(); chatSend(); }
@@ -932,9 +938,10 @@ document.addEventListener('scroll', e => {
   const d = dlg();
   // the close event arrives a task later: skip cleanup if another dialog was opened in the meantime (it would wipe the new content)
   d.addEventListener('close', () => { if (!d.open) cleanupModal(); });
-  d.addEventListener('click', e => { if (e.target === d) closeModal(); });
+  d.addEventListener('click', e => { if (e.target === d && !dirty && !saving()) closeModal(); });   // a tap outside never throws away entered data
+  d.addEventListener('cancel', e => { if (!canLeave()) e.preventDefault(); });                      // Esc on PC, Back on Android
   $('#txt').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.close(); });
-  $('#lb').addEventListener('click', e => { if (!e.target.closest('[data-a]') || e.target === $('#lb')) $('#lb').close(); });
+  $('#lb').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.close(); });   // only the dark area closes; a tap on the photo keeps it open for zooming
   try { api = CONFIG.supabaseUrl && CONFIG.supabaseKey ? await supabaseBackend() : await localBackend(); }
   catch {
     $('#app').innerHTML = `<section class="wrap">${empty('alert', 'Cannot open the app (เปิดใช้งานไม่ได้)', CONFIG.supabaseUrl ? 'เชื่อมต่อฐานข้อมูลไม่สำเร็จ ตรวจสอบอินเทอร์เน็ตแล้วรีเฟรชหน้า' : 'เบราว์เซอร์นี้บันทึกข้อมูลไม่ได้ ลองปิดโหมดไม่ระบุตัวตน (Private) แล้วเปิดใหม่')}</section>`;
