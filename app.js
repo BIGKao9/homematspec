@@ -354,10 +354,21 @@ async function delProject(btn) {
   } catch { toast('ลบไม่สำเร็จ ลองอีกครั้ง', 'err'); busy(btn, false); }
 }
 
+/* ---------- refresh keeps the screen ----------
+   F5 or pull-to-refresh reopens the same project, tab, category and scroll position. The view is kept in
+   sessionStorage, so it lives in this browser tab only; opening a project from the home page still asks for the code. */
+const SS = store('sessionStorage'), VIEW = 'hms_view';
+let pendY = null;   // scroll position to restore once the screen's data has drawn
+const saveView = () => SS.set(VIEW, JSON.stringify(S.proj ? { p: S.proj.id, t: S.tab, c: S.cat, y: scrollY } : { y: scrollY }));
+function takeView() { const v = SS.get(VIEW); SS.del(VIEW); try { return JSON.parse(v || 'null'); } catch { return null; } }
+function restoreY() { if (pendY === null) return; const y = pendY; pendY = null; requestAnimationFrame(() => scrollTo(0, y)); }
+
 /* ---------- project screen ---------- */
-function enter(p) {
+function enter(p, v = {}) {
   S.subs.forEach(f => f());
-  Object.assign(S, { proj: p, projSeen: S.projects.some(x => x.id === p.id), tab: 'photos', cat: -1, photos: [], plans: [], chat: [], ready: {}, role: loadRole(p.id) });
+  const tab = TABS.some(([k]) => k === v.t) ? v.t : 'photos', cat = Number.isInteger(v.c) && v.c >= -1 && v.c < CATS.length ? v.c : -1;
+  pendY = Number.isFinite(v.y) ? v.y : null;
+  Object.assign(S, { proj: p, projSeen: S.projects.some(x => x.id === p.id), tab, cat, photos: [], plans: [], chat: [], ready: {}, role: loadRole(p.id) });
   document.body.classList.add('in-proj');
   $('#app').innerHTML = `<section class="wrap ptop" id="ptop"></section>
     <nav class="tabs" id="tabs" role="tablist" aria-label="Project sections"></nav>
@@ -370,6 +381,7 @@ function onData(k) {
   if (k === 'chat') { S.chat.sort((a, b) => (a.at || 0) - (b.at || 0)); if (S.tab === 'chat') { drawMsgs(); markSeen(); } }
   else if (S.tab === k) { if (k === 'photos') drawCats(); drawList(); }
   drawTabs();
+  if (k === S.tab) restoreY();
 }
 function drawTop() {
   const p = S.proj, el = $('#ptop'); if (!el) return;
@@ -947,11 +959,19 @@ document.addEventListener('scroll', e => {
     $('#app').innerHTML = `<section class="wrap">${empty('alert', 'Cannot open the app (เปิดใช้งานไม่ได้)', CONFIG.supabaseUrl ? 'เชื่อมต่อฐานข้อมูลไม่สำเร็จ ตรวจสอบอินเทอร์เน็ตแล้วรีเฟรชหน้า' : 'เบราว์เซอร์นี้บันทึกข้อมูลไม่ได้ ลองปิดโหมดไม่ระบุตัวตน (Private) แล้วเปิดใหม่')}</section>`;
     return;
   }
+  let view = takeView();
+  history.scrollRestoration = 'manual';   // data draws after load, so the browser's own scroll restore would land too early
+  addEventListener('pagehide', saveView);
   home();
   tr(document.body);
   api.watch('projects', rows => {
     S.loaded = true; S.projects = rows.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-    if (!S.proj) return drawProjects();
+    if (view) {   // first list after a refresh: go back to where the user was
+      const v = view, p = v.p && S.projects.find(x => x.id === v.p); view = null;
+      if (p) return enter(p, v);
+      pendY = Number.isFinite(v.y) ? v.y : null;
+    }
+    if (!S.proj) { drawProjects(); return restoreY(); }
     const cur = rows.find(x => x.id === S.proj.id);
     // gone from the list after we had seen it = deleted on another device (the age check covers a just-created project not listed yet)
     if (!cur) { if (S.projSeen || Date.now() - (S.proj.createdAt || 0) > 60000) { toast('โครงการนี้ถูกลบแล้ว (Project deleted)'); closeModal(); home(); } }
