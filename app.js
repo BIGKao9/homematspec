@@ -184,7 +184,7 @@ async function supabaseBackend() {
   setInterval(() => { if (!live) hub.kickAll(); }, 20000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) hub.kickAll(); });
   addEventListener('online', () => { toast('Back online (กลับมาออนไลน์แล้ว)', 'ok'); hub.kickAll(); });
-  addEventListener('offline', () => toast('No internet (ไม่มีอินเทอร์เน็ต) – changes will sync when back online', 'err'));
+  addEventListener('offline', () => toast('No internet – saving is paused until you are back online (ไม่มีอินเทอร์เน็ต บันทึกไม่ได้จนกว่าจะกลับมาออนไลน์)', 'err'));
   const base = `${CONFIG.supabaseUrl}/storage/v1/object/public/${CONFIG.bucket}/`;
   const ok = ({ error }) => { if (error) throw error; };
   return {
@@ -350,7 +350,7 @@ async function delProject(btn) {
     if (p.cover) await api.remove(p.cover).catch(() => { });
     await api.doc('projects/' + p.id).delete();
     ['hms_role_', 'hms_read_', 'hms_fail_', 'hms_lock_'].forEach(k => LS.del(k + p.id));
-    closeModal(); transition(home); toast('Project deleted (ลบโครงการแล้ว)', 'ok');
+    closeModal(); goHome(); toast('Project deleted (ลบโครงการแล้ว)', 'ok');
   } catch { toast('ลบไม่สำเร็จ ลองอีกครั้ง', 'err'); busy(btn, false); }
 }
 
@@ -361,6 +361,15 @@ const SS = store('sessionStorage'), VIEW = 'hms_view';
 let pendY = null;   // scroll position to restore once the screen's data has drawn
 const saveView = () => SS.set(VIEW, JSON.stringify(S.proj ? { p: S.proj.id, t: S.tab, c: S.cat, y: scrollY } : { y: scrollY }));
 function takeView() { const v = SS.get(VIEW); SS.del(VIEW); try { return JSON.parse(v || 'null'); } catch { return null; } }
+/* Phone Back: the project screen has its own history entry, so Back returns to the home page
+   (closing an open window first) instead of leaving the site. */
+const inProjEntry = () => history.state?.hms === 'proj';
+function goHome() { if (inProjEntry()) history.back(); else transition(home); }   // the popstate handler draws home
+/* A list that could not load shows why and a way out, instead of loading forever */
+function showLoadErr(el) {
+  if (el) el.innerHTML = empty('alert', 'Could not load data (โหลดข้อมูลไม่สำเร็จ)', 'Check your internet, then try again (ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่)')
+    + '<p class="center"><button class="btn pri" data-a="reload">Try again (ลองใหม่)</button></p>';
+}
 function restoreY() { if (pendY === null) return; const y = pendY; pendY = null; requestAnimationFrame(() => scrollTo(0, y)); }
 
 /* ---------- project screen ---------- */
@@ -368,14 +377,16 @@ function enter(p, v = {}) {
   S.subs.forEach(f => f());
   const tab = TABS.some(([k]) => k === v.t) ? v.t : 'photos', cat = Number.isInteger(v.c) && v.c >= -1 && v.c < CATS.length ? v.c : -1;
   pendY = Number.isFinite(v.y) ? v.y : null;
-  Object.assign(S, { proj: p, projSeen: S.projects.some(x => x.id === p.id), tab, cat, photos: [], plans: [], chat: [], ready: {}, role: loadRole(p.id) });
+  Object.assign(S, { proj: p, projSeen: S.projects.some(x => x.id === p.id), tab, cat, photos: [], plans: [], chat: [], ready: {}, failed: {}, role: loadRole(p.id) });
   document.body.classList.add('in-proj');
   $('#app').innerHTML = `<section class="wrap ptop" id="ptop"></section>
     <nav class="tabs" id="tabs" role="tablist" aria-label="Project sections"></nav>
     <section class="wrap view" id="view"></section>
     <button class="fab" id="fab" data-a="add" aria-label="Add (เพิ่ม)">${icon('plus')}</button>`;
   drawTop(); drawTabs(); drawView(); window.scrollTo(0, 0);
-  S.subs = ['photos', 'plans', 'chat'].map(k => api.watch(`projects/${p.id}/${k}`, rows => { S[k] = rows; S.ready[k] = true; onData(k); }, () => toast('โหลดข้อมูลไม่สำเร็จ', 'err')));
+  if (!inProjEntry()) history.pushState({ hms: 'proj' }, '');
+  S.subs = ['photos', 'plans', 'chat'].map(k => api.watch(`projects/${p.id}/${k}`, rows => { S[k] = rows; S.ready[k] = true; onData(k); },
+    () => { toast('โหลดข้อมูลไม่สำเร็จ', 'err'); S.failed[k] = true; if (S.tab === k) k === 'chat' ? drawMsgs() : drawList(); }));
 }
 function onData(k) {
   if (k === 'chat') { S.chat.sort((a, b) => (a.at || 0) - (b.at || 0)); if (S.tab === 'chat') { drawMsgs(); markSeen(); } }
@@ -433,7 +444,7 @@ function card(x, ph) {
 }
 function drawList() {
   const el = $('#list'); if (!el) return; const ph = S.tab === 'photos';
-  if (!S.ready[S.tab]) { el.innerHTML = `<div class="grid">${'<div class="item sk"></div>'.repeat(3)}</div>`; return; }
+  if (!S.ready[S.tab]) { if (S.failed[S.tab]) showLoadErr(el); else el.innerHTML = `<div class="grid">${'<div class="item sk"></div>'.repeat(3)}</div>`; return; }
   const keep = {}; $$('.gtrack', el).forEach(t => { if (t.scrollLeft) keep[t.closest('[data-id]').dataset.id] = t.scrollLeft; });
   const rows = S[S.tab].filter(x => !ph || S.cat < 0 || x.cat === S.cat).sort((a, b) => (b.at || 0) - (a.at || 0));
   if (!rows.length) { el.innerHTML = empty(ph ? 'camera' : 'doc', ph ? 'No photos yet (ยังไม่มีรูปในหมวดนี้)' : 'No drawings yet (ยังไม่มีแบบก่อสร้าง)', 'Tap + to add (กด + เพื่อเพิ่ม)'); return; }
@@ -538,14 +549,17 @@ async function saveAdd(btn) {
       const { full, th } = await uploadPhotos(files, prog);
       await api.doc(`projects/${pid}/photos/${rid('i')}`).set({ cat: +$('#fc').value, item: val('fi'), note: val('fn'), asset: full[0], assets: full, thumbs: th, kind: 'img', fname: files[0].name, at: new Date($('#fd').value).getTime() || Date.now() });
     } else {
-      for (let i = 0; i < files.length; i++) {
-        prog(i, files.length); const f = files[i], name = val('fi') || f.name.replace(/\.[^.]+$/, ''), row = { item: files.length > 1 && val('fi') ? `${name} (${i + 1})` : name, fname: f.name, at: Date.now() };
+      const list = picked.slice(); list.forEach((p, i) => { p.k ??= i + 1; });   // k: the file's number in the batch, kept on a retry
+      const many = list.length > 1 || list[0].k > 1;
+      for (let i = 0; i < list.length; i++) {
+        prog(i, list.length); const f = list[i].f, name = val('fi') || f.name.replace(/\.[^.]+$/, ''), row = { item: many && val('fi') ? `${name} (${list[i].k})` : name, fname: f.name, at: Date.now() };
         if (await isPdf(f)) { const a = await api.put(new Blob([f], { type: 'application/pdf' })); try { await api.doc(`projects/${pid}/plans/${rid('i')}`).set({ ...row, kind: 'pdf', asset: a }); } catch (e) { api.remove(a).catch(() => { }); throw e; } }
         else { const r = await prepImage(f, 2400, 480), a = await api.put(r.full), b = await api.put(r.th); try { await api.doc(`projects/${pid}/plans/${rid('i')}`).set({ ...row, kind: 'img', asset: a, assets: [a], thumbs: [b] }); } catch (e) { api.remove(a).catch(() => { }); api.remove(b).catch(() => { }); throw e; } }
+        const [done] = picked.splice(picked.indexOf(list[i]), 1); if (done?.u) URL.revokeObjectURL(done.u);
       }
     }
     persist(); closeModal(); toast('Saved (บันทึกเรียบร้อย)', 'ok');
-  } catch (e) { toast(errMsg(e, 'บันทึกไม่สำเร็จ'), 'err'); busy(btn, false); $('#prog')?.setAttribute('hidden', ''); }
+  } catch (e) { toast(errMsg(e, 'บันทึกไม่สำเร็จ'), 'err'); busy(btn, false); $('#prog')?.setAttribute('hidden', ''); if (!ph) drawPv(); }
 }
 async function saveAddPh(id, btn) {
   const files = picked.map(p => p.f); if (!files.length) { $('#ff-err').textContent = 'กรุณาเลือกรูปก่อน'; return; }
@@ -612,6 +626,13 @@ function wrapText(g, para, maxW) {
   if (cur || !lines.length) lines.push(cur);
   return lines;
 }
+/* Canvas -> image bytes now. toBlob/convertToBlob wait for the browser's idle time, which a busy export loop
+   rarely leaves: measured ~1,040 ms per A4 page, against 21-74 ms for toDataURL. */
+function canvasBytes(c, type, q) {
+  const s = atob(c.toDataURL(type, q).split(',')[1]), u = new Uint8Array(s.length);
+  for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i);
+  return u;
+}
 async function pdfPage(x, bmp, k, n) {
   const c = document.createElement('canvas'), g = c.getContext('2d'), M = 70, W = PX - M * 2;
   c.width = PX; c.height = PY; g.fillStyle = '#fff'; g.fillRect(0, 0, PX, PY); g.textBaseline = 'top';
@@ -633,7 +654,7 @@ async function pdfPage(x, bmp, k, n) {
   g.drawImage(bmp, M + (W - iw) / 2, y + (boxH - ih) / 2, iw, ih);
   g.font = '400 20px Sarabun, sans-serif'; g.fillStyle = '#8a97a8';
   g.fillText(`พิมพ์เมื่อ ${fmt(Date.now(), { dateStyle: 'medium', timeStyle: 'short' })}${n > 1 ? `   ·   หน้า ${k + 1}/${n}` : ''}`, M, PY - M - 20);
-  return { w: PX, h: PY, jpg: new Uint8Array(await (await new Promise(r => c.toBlob(r, 'image/jpeg', .88))).arrayBuffer()) };
+  return { w: PX, h: PY, jpg: canvasBytes(c, 'image/jpeg', .88) };
 }
 function makePdf(pages) {
   const enc = new TextEncoder(), parts = [], offs = []; let len = 0;
@@ -690,8 +711,7 @@ async function pdfView(x) {
       const v = pg.getViewport({ scale: sc }), c = document.createElement('canvas'), cw = Math.floor(v.width), ch = Math.floor(v.height);
       c.width = cw; c.height = ch;
       await pg.render({ canvasContext: c.getContext('2d'), viewport: v }).promise; pg.cleanup();
-      const blob = await new Promise(r => c.toBlob(r, 'image/png')); c.width = c.height = 0;   // an <img> lets the browser free the bitmap; a canvas would hold it
-      if (!blob) throw new Error('render');
+      const blob = new Blob([canvasBytes(c, 'image/png')], { type: 'image/png' }); c.width = c.height = 0;   // an <img> lets the browser free the bitmap; a canvas would hold it
       if (!live()) return;
       const u = URL.createObjectURL(blob); pdfUrls.push(u);
       box.insertAdjacentHTML('beforeend', `<button class="pgbtn" data-a="zoom" data-src="${u}" aria-label="Zoom page ${n} (ขยายหน้า ${n})"><img src="${u}" width="${cw}" height="${ch}" alt=""></button>`);
@@ -724,7 +744,7 @@ function drawChat() {
 function drawMsgs(force) {
   const el = $('#cmsgs'); if (!el) return;
   const near = el.scrollHeight - el.scrollTop - el.clientHeight < 80, rows = S.chat.slice(-200); let h = '', day = '';
-  if (!S.ready.chat) h = '<p class="mu center"><span class="spin"></span></p>';
+  if (!S.ready.chat) { if (S.failed.chat) return showLoadErr(el); h = '<p class="mu center"><span class="spin"></span></p>'; }
   else if (!rows.length) h = empty('chat', 'No messages yet (ยังไม่มีข้อความ)', 'Start the conversation with your team (เริ่มคุยกับทีมได้เลย)');
   else {
     if (S.chat.length > 200) h = '<p class="mu center sm">Showing latest 200 (แสดง 200 ข้อความล่าสุด)</p>';
@@ -837,7 +857,7 @@ function keepPairs(root) {
   const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), hits = [];
   for (let n = w.nextNode(); n; n = w.nextNode()) {
     const p = n.parentElement;
-    if (p && RX_TAIL.test(n.nodeValue) && p.closest('button,label,.empty b') &&!p.closest('.tp,select,' + TR_SKIP)) hits.push(n);
+    if (p && RX_TAIL.test(n.nodeValue) && p.closest('button,label,.empty b') &&!p.closest('.tp,.brand,select,' + TR_SKIP)) hits.push(n);
   }
   for (const n of hits) {
     const [, en, th] = n.nodeValue.match(RX_TAIL), sp = document.createElement('span'), sm = document.createElement('small');
@@ -863,7 +883,7 @@ new MutationObserver(ms => { const mode = langMode(); for (const m of ms) m.adde
 
 /* ---------- events ---------- */
 const A = {
-  home: () => transition(home), about, newp: () => projForm(), open: d => gate(d.id), editp: () => projForm(S.proj), delp: delProjForm,
+  home: goHome, about, reload: () => location.reload(), newp: () => projForm(), open: d => gate(d.id), editp: () => projForm(S.proj), delp: delProjForm,
   covrm: () => { pendCover = null; dirty = true; drawCov(''); },
   tab: d => { if (S.tab === d.t) return; S.tab = d.t; drawTabs(); drawView(); if (coarse()) window.scrollTo(0, 0); },
   cat: d => { S.cat = +d.i; drawCats(); drawList(); $('#cats [aria-pressed=true]')?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }); },
@@ -962,6 +982,14 @@ document.addEventListener('scroll', e => {
   let view = takeView();
   history.scrollRestoration = 'manual';   // data draws after load, so the browser's own scroll restore would land too early
   addEventListener('pagehide', saveView);
+  // (1) F5, pull-to-refresh or closing the tab with unsaved form data or a running upload: the browser asks first
+  addEventListener('beforeunload', e => { if (dlg().open && (dirty || saving())) { e.preventDefault(); e.returnValue = ''; } });
+  addEventListener('popstate', () => {
+    if (!S.proj) return;
+    const top = [$('#lb'), $('#txt'), dlg()].find(x => x.open);
+    if (top) { history.pushState({ hms: 'proj' }, ''); if (top !== dlg() || canLeave()) top.close(); return; }   // Back closes the open window first
+    transition(home);
+  });
   home();
   tr(document.body);
   api.watch('projects', rows => {
@@ -969,13 +997,14 @@ document.addEventListener('scroll', e => {
     if (view) {   // first list after a refresh: go back to where the user was
       const v = view, p = v.p && S.projects.find(x => x.id === v.p); view = null;
       if (p) return enter(p, v);
+      if (inProjEntry()) history.replaceState(null, '');   // the project is gone: this entry is the home page now
       pendY = Number.isFinite(v.y) ? v.y : null;
     }
     if (!S.proj) { drawProjects(); return restoreY(); }
     const cur = rows.find(x => x.id === S.proj.id);
     // gone from the list after we had seen it = deleted on another device (the age check covers a just-created project not listed yet)
-    if (!cur) { if (S.projSeen || Date.now() - (S.proj.createdAt || 0) > 60000) { toast('โครงการนี้ถูกลบแล้ว (Project deleted)'); closeModal(); home(); } }
+    if (!cur) { if (S.projSeen || Date.now() - (S.proj.createdAt || 0) > 60000) { toast('โครงการนี้ถูกลบแล้ว (Project deleted)'); closeModal(); goHome(); } }
     else { S.projSeen = true; if (JSON.stringify(cur) !== JSON.stringify(S.proj)) { S.proj = cur; drawTop(); } }
-  }, () => toast('โหลดโครงการไม่สำเร็จ', 'err'));
+  }, () => { toast('โหลดโครงการไม่สำเร็จ', 'err'); if (!S.loaded && !S.proj) showLoadErr($('#plist')); });
   if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => { });
 })();

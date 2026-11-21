@@ -176,10 +176,11 @@ input[type=search]::-webkit-search-cancel-button{filter:invert(1)}
   .phead{gap:8px;align-items:flex-start}
 
   .pthumb{height:48px;max-width:60px;align-self:center}
-  .ph-info h1{font-size:1.08rem;line-height:1.3;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere}
+  .ph-info h1{font-size:1.08rem;line-height:1.3;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:break-word}
   .ph-meta{flex-direction:column}
   .ph-meta .meta{font-size:.78rem}
 }
+@media (max-width:359px){.pthumb{max-width:44px}}   /* leaves the project name room for a long Thai word such as คอนกรีตเสริมเหล็ก */
 @media (min-width:640px){.backbtn{flex-direction:row;width:auto;min-height:44px;padding:6px 14px 6px 10px;gap:6px;font-size:.9rem}.backbtn .bt{flex-direction:row;gap:0}.pacts{flex-direction:row;gap:8px}.pacts .btn{width:auto;padding:7px 12px}}
 
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:15;display:grid;grid-template-columns:repeat(3,1fr);
