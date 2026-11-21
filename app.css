@@ -453,6 +453,12 @@ html[data-fs="xl"]{font-size:125%}
 .opt b{font-weight:700;line-height:1}
 .opt .fs1{font-size:1rem}.opt .fs2{font-size:1.25rem}.opt .fs3{font-size:1.5rem}
 .opt .ic{width:22px;height:22px}
+.inst{width:100%;text-align:center}
+.instdone{display:flex;align-items:center;justify-content:center;gap:8px;min-height:var(--tap);color:var(--ok);font-weight:600}
+.steps{list-style:none;margin:0;padding:0;counter-reset:st;display:grid;gap:14px}
+.steps li{counter-increment:st;display:flex;align-items:center;gap:12px;line-height:1.5}
+.steps li::before{content:counter(st);flex:none;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:var(--ac);color:var(--ac-ink);font-weight:700}
+.steps .ic{width:20px;height:20px;vertical-align:-4px}
 /* language modes (see tr() in app.js) */
 .l-hide{display:none!important}
 .l-main{font-size:inherit!important;font-weight:inherit!important;color:inherit!important;opacity:1!important}

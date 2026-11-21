@@ -1,6 +1,6 @@
 {
-  "name": "Home Material Spec",
-  "short_name": "HMS",
+  "name": "HMS APP",
+  "short_name": "HMS APP",
   "description": "Material & Spec Check (ตรวจวัสดุและสเปกงานก่อสร้าง)",
   "lang": "th",
   "start_url": "./",

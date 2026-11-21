@@ -8,7 +8,7 @@
    Never put the service_role key here. */
 /* Release version, shown in About. Keep it equal to ?v= in index.html and to CACHE/SHELL in sw.js:
    1.0.x = fixes, 1.x.0 = new features. */
-const APP_VERSION = '1.0.0';
+const APP_VERSION = '1.1.0';
 const CONFIG = {
   supabaseUrl: 'https://czyefarlcanffczymewb.supabase.co',
   supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6eWVmYXJsY2FuZmZjenltZXdiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ3NjAzMTcsImV4cCI6MjExMDMzNjMxN30.1BDNW0KWKxejxbXT5iazqYDW8aNPSwsrSHL83UyUbJo',
@@ -844,7 +844,41 @@ function settings() {
       <div class="sgroup"><span class="lbl">Text size (ขนาดตัวอักษร)</span><div class="seg3">${opt('fs', 'm', '<b class="fs1">ก</b>Normal (ปกติ)')}${opt('fs', 'l', '<b class="fs2">ก</b>Large (ใหญ่)')}${opt('fs', 'xl', '<b class="fs3">ก</b>Extra large (ใหญ่มาก)')}</div></div>
       <div class="sgroup"><span class="lbl">Theme (ธีมสี)</span><div class="seg2">${opt('theme', 'dark', icon('moon') + 'Indoor (ในร่ม)')}${opt('theme', 'light', icon('sun') + 'Outdoor (กลางแจ้ง)')}</div></div>
       <div class="sgroup"><span class="lbl">Language (ภาษา)</span><div class="seg3">${opt('lang', 'both', 'EN + ไทย')}${opt('lang', 'th', 'ไทย')}${opt('lang', 'en', 'English')}</div></div>
+      <div class="sgroup"><span class="lbl">Install app (ติดตั้งแอป)</span><div id="inst">${installRow()}</div></div>
       <p class="mu center sm">Saved on this device (จำค่าไว้ในเครื่องนี้)</p></div></div>`, 'narrow');
+}
+
+/* ---------- install as an app (HMS APP on the home screen / desktop) ----------
+   Chrome, Edge and Android hand over a one-shot native prompt (beforeinstallprompt). iPhone/iPad have no
+   such API and in-app browsers (LINE, Facebook, Instagram) cannot install, so those get step-by-step help. */
+let installEvt = null;
+addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; drawInstall(); });
+addEventListener('appinstalled', () => { installEvt = null; drawInstall(); toast('HMS APP installed (ติดตั้ง HMS APP แล้ว)', 'ok'); });
+const installed = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const inAppBrowser = () => /FBAN|FBAV|FB_IAB|Instagram|Line\/|MicroMessenger|; wv\)/i.test(navigator.userAgent);
+const installRow = () => installed() ? `<p class="instdone">${icon('check')}Installed (ติดตั้งแล้ว)</p>`
+  : `<button type="button" class="btn pri inst" data-a="install">${icon('download')}<span>${coarse() ? 'Add to Home Screen <small>(เพิ่มไปหน้าจอหลัก)</small>' : 'Install on desktop <small>(ติดตั้งบนเดสก์ท็อป)</small>'}</span></button>`;
+function drawInstall() { const el = $('#inst'); if (el) el.innerHTML = installRow(); }
+async function install() {
+  if (installEvt) {   // the prompt works once; Chrome fires a fresh event if the user declines and comes back later
+    const e = installEvt; installEvt = null;
+    try { await e.prompt(); await e.userChoice; } catch { installGuide(); }
+    drawInstall(); return;
+  }
+  installGuide();
+}
+function installGuide() {
+  const steps = inAppBrowser()
+    ? ['Tap the menu ⋯ at the corner (แตะเมนู ⋯ ที่มุมจอ)', 'Choose “Open in browser” (เลือก “เปิดในเบราว์เซอร์”)', 'Open Settings again and tap install (เปิดตั้งค่าแล้วกดติดตั้งอีกครั้ง)']
+    : isIOS()
+      ? [`Tap Share ${icon('share')} in Safari (แตะปุ่มแชร์ใน Safari)`, 'Choose “Add to Home Screen” (เลือก “เพิ่มไปยังหน้าจอโฮม”)', 'Tap “Add” (แตะ “เพิ่ม”)']
+      : coarse()
+        ? ['Tap the browser menu ⋮ (แตะเมนู ⋮ ของเบราว์เซอร์)', 'Choose “Install app” or “Add to Home screen” (เลือก “ติดตั้งแอป” หรือ “เพิ่มไปยังหน้าจอหลัก”)', 'Tap “Install” (แตะ “ติดตั้ง”)']
+        : ['Open this site in Chrome or Edge (เปิดเว็บนี้ด้วย Chrome หรือ Edge)', `Click the install icon ${icon('download')} in the address bar (คลิกไอคอนติดตั้งในช่องที่อยู่)`, 'Click “Install” (คลิก “ติดตั้ง”)'];
+  openModal(`<div class="setbox"><div class="dhead"><h2>Install HMS APP <small>(ติดตั้ง HMS APP)</small></h2><button class="icbtn" data-a="mclose" aria-label="Close (ปิด)">${icon('x')}</button></div>
+    <div class="dbody"><ol class="steps">${steps.map(s => `<li><span>${s}</span></li>`).join('')}</ol></div>
+    <div class="dfoot"><button type="button" class="btn ghost" data-a="settings">${icon('back')}<span>Back (กลับ)</span></button></div></div>`, 'narrow');
 }
 function setPref(k, v) {
   const d = document.documentElement, [key, def] = PREFS[k];
@@ -974,6 +1008,7 @@ const A = {
   mclose: () => { if (!saving()) closeModal(); },
   settings,
   pref: d => setPref(d.k, d.v),
+  install,
   txtx: () => $('#txt').close(),
   pvrm: d => { const p = picked.splice(+d.i, 1)[0]; if (p?.u) URL.revokeObjectURL(p.u); drawPv(); saveDraft(); },
   dropdraft: discardDraft,
