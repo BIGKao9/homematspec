@@ -6,6 +6,9 @@
    ========================================================================= */
 /* anon key = public by design (safe in browser code); access is governed by the RLS policies in setup.sql.
    Never put the service_role key here. */
+/* Release version, shown in About. Keep it equal to ?v= in index.html and to CACHE/SHELL in sw.js:
+   1.0.x = fixes, 1.x.0 = new features. */
+const APP_VERSION = '1.0.0';
 const CONFIG = {
   supabaseUrl: 'https://czyefarlcanffczymewb.supabase.co',
   supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6eWVmYXJsY2FuZmZjenltZXdiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ3NjAzMTcsImV4cCI6MjExMDMzNjMxN30.1BDNW0KWKxejxbXT5iazqYDW8aNPSwsrSHL83UyUbJo',
@@ -783,7 +786,8 @@ async function pdfView(x) {
 function about() {
   openModal(`<div class="aboutbox"><div class="dhead"><h2>About <small>(เกี่ยวกับ)</small></h2><button class="icbtn" data-a="mclose" aria-label="Close (ปิด)">${icon('x')}</button></div>
     <div class="dbody"><img src="logo.png" width="96" height="96" alt="" class="about-logo"><h3>Home Material Spec</h3><p class="mu sub">Material & Spec Check <small class="blk">(ตรวจวัสดุและสเปกงานก่อสร้าง)</small></p>
-    <dl class="credits"><div><dt>Advisor (อาจารย์ที่ปรึกษา)</dt><dd>อาจารย์ศรันยู พรมศร</dd></div><div><dt>Developed by (จัดทำโดย)</dt><dd>นายวสุพล เปี่ยมจิตร</dd><dd>นายสุชาวัฒน์ นิสังกาศ</dd></div></dl></div></div>`, 'narrow');
+    <dl class="credits"><div><dt>Advisor (อาจารย์ที่ปรึกษา)</dt><dd>อาจารย์ศรันยู พรมศร</dd></div><div><dt>Developed by (จัดทำโดย)</dt><dd>นายวสุพล เปี่ยมจิตร</dd><dd>นายสุชาวัฒน์ นิสังกาศ</dd></div></dl>
+    <p class="mu center sm">Version ${APP_VERSION} (เวอร์ชัน ${APP_VERSION})</p></div></div>`, 'narrow');
 }
 
 /* ---------- chat ---------- */
