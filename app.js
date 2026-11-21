@@ -219,8 +219,68 @@ function openModal(html, cls = '') {
   const d = dlg(); d.className = 'dlg ' + cls; d.innerHTML = html; dirty = false;
   if (!d.open) d.showModal();
   (d.querySelector('[autofocus]') || (coarse() ? d : d.querySelector('input:not([type=file]),textarea,select')) || d).focus?.({ preventScroll: true });
+  loadDraft();
 }
-function closeModal() { const d = dlg(); if (d.open) d.close(); }
+function closeModal() { const d = dlg(); if (draftKey) { dropDraft(); draftKey = null; } if (d.open) d.close(); }   // closed by the app (saved, cancelled): the draft is done now, not when the late close event arrives
+/* ---------- drafts ----------
+   While a form is being filled in, what was typed or picked (photos and files too) is kept in this device's
+   IndexedDB, so a refresh, a closed tab or a phone that unloads the page loses nothing. The draft is deleted
+   when the form closes (saved, cancelled or discarded) and after 24 hours. Codes are never stored. */
+const DRAFT_FORMS = ['newp', 'editp', 'add', 'addph', 'edititem'], DRAFT_TTL = 864e5, DRAFT_FILES = 20;
+let draftKey = null, draftTimer = 0, draftOk = false, pendForm = null;
+const draftDb = () => draftDb.p ||= new Promise((ok, no) => {
+  const r = indexedDB.open('hms-drafts', 1);
+  r.onupgradeneeded = () => r.result.createObjectStore('d', { keyPath: 'key' });
+  r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error);
+});
+async function draftTx(mode, fn) {
+  const db = await draftDb();
+  return new Promise((ok, no) => { const t = db.transaction('d', mode), q = fn(t.objectStore('d')); t.oncomplete = () => ok(q?.result); t.onerror = t.onabort = () => no(t.error); });
+}
+// one draft per form and context: project, tab and item ("-" = home page)
+const formKey = f => [S.proj?.id || '-', f.dataset.f, f.dataset.f === 'add' || f.dataset.f === 'edititem' ? S.tab : '', f.dataset.id || ''].join('|');
+function saveDraft(now) {
+  clearTimeout(draftTimer);
+  const run = () => {
+    const f = $('#dlg form[data-f]'), key = draftKey; if (!f || !key || formKey(f) !== key || !dirty) return;
+    const fields = {}; $$('input[id]:not([type=file]):not(.code),select[id],textarea[id]', f).forEach(e => { fields[e.id] = e.value; });
+    draftTx('readwrite', st => st.put({ key, at: Date.now(), fields, files: picked.slice(0, DRAFT_FILES).map(p => p.f), cover: pendCover }))
+      .then(() => { draftOk = true; }, () => { draftOk = false; });
+  };
+  if (now) run(); else draftTimer = setTimeout(run, 400);
+}
+function dropDraft(key = draftKey) { clearTimeout(draftTimer); if (key) draftTx('readwrite', st => st.delete(key)).catch(() => { }); }
+async function loadDraft() {
+  const f = $('#dlg form[data-f]'); draftKey = null; draftOk = false;
+  if (!f || !DRAFT_FORMS.includes(f.dataset.f) || !window.indexedDB) return;
+  const key = draftKey = formKey(f);
+  let d; try { d = await draftTx('readonly', st => st.get(key)); } catch { return; }
+  if (!d || draftKey !== key || !f.isConnected) return;
+  if (Date.now() - d.at > DRAFT_TTL) return dropDraft(key);
+  for (const [id, v] of Object.entries(d.fields || {})) { const e = f.querySelector('#' + CSS.escape(id)); if (e) e.value = v; }
+  if (d.files?.length) addPicked(d.files);
+  if (d.cover !== undefined && $('#covw')) { pendCover = d.cover; if (covUrl) URL.revokeObjectURL(covUrl); covUrl = d.cover ? URL.createObjectURL(d.cover) : ''; drawCov(covUrl); }
+  dirty = true; draftOk = true;
+  $('.dbody', f)?.insertAdjacentHTML('afterbegin', `<div class="draftbar">${icon('edit')}<span>Draft restored (กู้ข้อมูลที่กรอกค้างไว้แล้ว)</span><button type="button" class="btn ghost sm" data-a="dropdraft">Discard (ทิ้งร่างนี้)</button></div>`);
+}
+function discardDraft() {   // the "Discard" button: back to the form as it opened
+  const f = $('#dlg form[data-f]'); if (!f) return;
+  dropDraft(); f.reset(); $('.draftbar', f)?.remove();
+  picked.forEach(p => p.u && URL.revokeObjectURL(p.u)); picked = []; drawPv();
+  if ($('#covw')) { const edit = f.dataset.f === 'editp'; pendCover = edit ? undefined : null; if (covUrl) { URL.revokeObjectURL(covUrl); covUrl = ''; } drawCov(edit && S.proj?.cover ? api.url(S.proj.cover) : ''); }
+  dirty = false;
+}
+// after a refresh: open the form that was open, then loadDraft fills it
+function reopenForm(dk) {
+  const [pid, f, , id] = dk.split('|');
+  if (f === 'newp') return projForm();
+  if (!S.proj || S.proj.id !== pid) return;
+  if (f === 'editp') return projForm(S.proj);
+  if (f === 'add') return addForm();
+  const x = S[S.tab]?.find(y => y.id === id); if (x) (f === 'addph' ? addPhForm : editItem)(x);
+}
+const chatKey = () => 'hms_chat_' + S.proj?.id;   // a half-typed chat message, per project
+
 /* Full text of a truncated "…" line, in its own dialog stacked on top, so an open form underneath keeps its input. */
 function showFull(text) {
   const d = $('#txt');
@@ -229,6 +289,7 @@ function showFull(text) {
   if (!d.open) d.showModal();
 }
 function cleanupModal() {
+  if (draftKey) { dropDraft(); draftKey = null; }   // the form closed (saved, cancelled or discarded): its draft is done
   picked.forEach(p => p.u && URL.revokeObjectURL(p.u)); picked = [];
   if (covUrl) { URL.revokeObjectURL(covUrl); covUrl = ''; }
   pdfUrls.forEach(u => URL.revokeObjectURL(u)); pdfUrls = [];
@@ -349,7 +410,7 @@ async function delProject(btn) {
     }
     if (p.cover) await api.remove(p.cover).catch(() => { });
     await api.doc('projects/' + p.id).delete();
-    ['hms_role_', 'hms_read_', 'hms_fail_', 'hms_lock_'].forEach(k => LS.del(k + p.id));
+    ['hms_role_', 'hms_read_', 'hms_fail_', 'hms_lock_', 'hms_chat_'].forEach(k => LS.del(k + p.id));
     closeModal(); goHome(); toast('Project deleted (ลบโครงการแล้ว)', 'ok');
   } catch { toast('ลบไม่สำเร็จ ลองอีกครั้ง', 'err'); busy(btn, false); }
 }
@@ -359,7 +420,7 @@ async function delProject(btn) {
    sessionStorage, so it lives in this browser tab only; opening a project from the home page still asks for the code. */
 const SS = store('sessionStorage'), VIEW = 'hms_view';
 let pendY = null;   // scroll position to restore once the screen's data has drawn
-const saveView = () => SS.set(VIEW, JSON.stringify(S.proj ? { p: S.proj.id, t: S.tab, c: S.cat, y: scrollY } : { y: scrollY }));
+const saveView = () => { const d = dlg().open && draftKey ? draftKey : undefined; SS.set(VIEW, JSON.stringify(S.proj ? { p: S.proj.id, t: S.tab, c: S.cat, y: scrollY, d } : { y: scrollY, d })); };
 function takeView() { const v = SS.get(VIEW); SS.del(VIEW); try { return JSON.parse(v || 'null'); } catch { return null; } }
 /* Phone Back: the project screen has its own history entry, so Back returns to the home page
    (closing an open window first) instead of leaving the site. */
@@ -376,7 +437,7 @@ function restoreY() { if (pendY === null) return; const y = pendY; pendY = null;
 function enter(p, v = {}) {
   S.subs.forEach(f => f());
   const tab = TABS.some(([k]) => k === v.t) ? v.t : 'photos', cat = Number.isInteger(v.c) && v.c >= -1 && v.c < CATS.length ? v.c : -1;
-  pendY = Number.isFinite(v.y) ? v.y : null;
+  pendY = Number.isFinite(v.y) ? v.y : null; pendForm = typeof v.d === 'string' ? v.d : null;
   Object.assign(S, { proj: p, projSeen: S.projects.some(x => x.id === p.id), tab, cat, photos: [], plans: [], chat: [], ready: {}, failed: {}, role: loadRole(p.id) });
   document.body.classList.add('in-proj');
   $('#app').innerHTML = `<section class="wrap ptop" id="ptop"></section>
@@ -392,7 +453,7 @@ function onData(k) {
   if (k === 'chat') { S.chat.sort((a, b) => (a.at || 0) - (b.at || 0)); if (S.tab === 'chat') { drawMsgs(); markSeen(); } }
   else if (S.tab === k) { if (k === 'photos') drawCats(); drawList(); }
   drawTabs();
-  if (k === S.tab) restoreY();
+  if (k === S.tab) { restoreY(); if (pendForm) { const d = pendForm; pendForm = null; reopenForm(d); } }
 }
 function drawTop() {
   const p = S.proj, el = $('#ptop'); if (!el) return;
@@ -512,6 +573,7 @@ function addPicked(files) {
     if ((!img && !pdf) || f.size > MAX_FILE || picked.length >= MAX_PICK) { bad++; continue; }
     picked.push({ f, u: img ? URL.createObjectURL(f) : '' }); dirty = true;
   }
+  saveDraft();
   if (err) err.textContent = bad ? `ข้ามไป ${bad} ไฟล์ (ชนิดไม่รองรับ ใหญ่เกิน 25 MB หรือเกิน ${MAX_PICK} ไฟล์)` : '';
   drawPv();
 }
@@ -559,7 +621,7 @@ async function saveAdd(btn) {
       }
     }
     persist(); closeModal(); toast('Saved (บันทึกเรียบร้อย)', 'ok');
-  } catch (e) { toast(errMsg(e, 'บันทึกไม่สำเร็จ'), 'err'); busy(btn, false); $('#prog')?.setAttribute('hidden', ''); if (!ph) drawPv(); }
+  } catch (e) { toast(errMsg(e, 'บันทึกไม่สำเร็จ'), 'err'); busy(btn, false); $('#prog')?.setAttribute('hidden', ''); if (!ph) drawPv(); saveDraft(); }
 }
 async function saveAddPh(id, btn) {
   const files = picked.map(p => p.f); if (!files.length) { $('#ff-err').textContent = 'กรุณาเลือกรูปก่อน'; return; }
@@ -740,6 +802,7 @@ function drawChat() {
     <form class="csend" data-f="chat"><textarea id="ct" maxlength="1000" rows="1" placeholder="Type a message… (พิมพ์ข้อความ)" enterkeyhint="send" aria-label="Message (ข้อความ)"></textarea>
     <button class="btn pri sendbtn" aria-label="Send (ส่ง)">${icon('send')}</button></form></div>`;
   drawMsgs(true); markSeen();
+  try { const c = JSON.parse(LS.get(chatKey()) || 'null'), t = $('#ct'); if (c && Date.now() - c.at < DRAFT_TTL && t && !t.value) { t.value = c.t; grow(t); } } catch { }
 }
 function drawMsgs(force) {
   const el = $('#cmsgs'); if (!el) return;
@@ -761,7 +824,7 @@ function grow(t) { t.style.height = 'auto'; t.style.height = Math.min(t.scrollHe
 async function chatSend() {
   const t = $('#ct'), v = t?.value.trim(), b = $('.sendbtn'); if (!v || !S.role || b.disabled) return;
   busy(b, true);
-  try { await api.doc(`projects/${S.proj.id}/chat/${rid('m')}`).set({ role: S.role.r, name: S.role.n || '', text: v, u: UID, at: Date.now() }); t.value = ''; grow(t); persist(); }
+  try { await api.doc(`projects/${S.proj.id}/chat/${rid('m')}`).set({ role: S.role.r, name: S.role.n || '', text: v, u: UID, at: Date.now() }); t.value = ''; grow(t); LS.del(chatKey()); persist(); }
   catch { toast('ส่งข้อความไม่สำเร็จ', 'err'); }
   busy(b, false); if (!coarse()) t.focus();
 }
@@ -884,7 +947,7 @@ new MutationObserver(ms => { const mode = langMode(); for (const m of ms) m.adde
 /* ---------- events ---------- */
 const A = {
   home: goHome, about, reload: () => location.reload(), newp: () => projForm(), open: d => gate(d.id), editp: () => projForm(S.proj), delp: delProjForm,
-  covrm: () => { pendCover = null; dirty = true; drawCov(''); },
+  covrm: () => { pendCover = null; dirty = true; drawCov(''); saveDraft(); },
   tab: d => { if (S.tab === d.t) return; S.tab = d.t; drawTabs(); drawView(); if (coarse()) window.scrollTo(0, 0); },
   cat: d => { S.cat = +d.i; drawCats(); drawList(); $('#cats [aria-pressed=true]')?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }); },
   add: () => addForm(),
@@ -908,9 +971,10 @@ const A = {
   settings,
   pref: d => setPref(d.k, d.v),
   txtx: () => $('#txt').close(),
-  pvrm: d => { const p = picked.splice(+d.i, 1)[0]; if (p?.u) URL.revokeObjectURL(p.u); drawPv(); },
+  pvrm: d => { const p = picked.splice(+d.i, 1)[0]; if (p?.u) URL.revokeObjectURL(p.u); drawPv(); saveDraft(); },
+  dropdraft: discardDraft,
   cbtn: () => { const c = $('#cl'); if (c && !c.hidden) hideList(); else showList(true); },
-  copt: d => { $('#fi').value = d.v; dirty = true; hideList(); },
+  copt: d => { $('#fi').value = d.v; dirty = true; hideList(); saveDraft(); },
   role: d => { S.role = { r: d.r, n: val('cn') }; LS.set('hms_role_' + S.proj.id, JSON.stringify(S.role)); drawChat(); },
   crole: () => { S.role = null; LS.del('hms_role_' + S.proj.id); drawChat(); },
   cdel: async (d, el) => {
@@ -934,7 +998,7 @@ document.addEventListener('submit', e => {
 });
 document.addEventListener('input', e => {
   const t = e.target; t.removeAttribute('aria-invalid'); const fe = $('#' + t.id + '-err'); if (fe) fe.textContent = '';
-  if (t.closest('#dlg') && !t.classList.contains('code')) dirty = true;   // a typed code alone is not worth a "discard?" prompt
+  if (t.closest('#dlg') && !t.classList.contains('code')) { dirty = true; saveDraft(); }   // a typed code alone is not worth a "discard?" prompt
   if (t.classList.contains('code')) {
     // Thai (๐-๙) and full-width digits from phone keyboards count as digits; then keep 4 digits only
     const v = t.value.replace(/[๐-๙]/g, c => c.charCodeAt(0) - 0x0E50).replace(/[０-９]/g, c => c.charCodeAt(0) - 0xFF10).replace(/\D/g, '').slice(0, 4);
@@ -943,7 +1007,7 @@ document.addEventListener('input', e => {
   }
   else if (t.id === 'pq') { S.q = t.value; drawProjects(); }
   else if (t.id === 'fi' && $('#cl')) showList();
-  else if (t.id === 'ct') grow(t);
+  else if (t.id === 'ct') { grow(t); if (t.value.trim()) LS.set(chatKey(), JSON.stringify({ t: t.value, at: Date.now() })); else LS.del(chatKey()); }
 });
 document.addEventListener('change', e => {
   const t = e.target;
@@ -951,6 +1015,7 @@ document.addEventListener('change', e => {
   else if (t.id === 'pcov') { const f = t.files[0]; t.value = ''; if (!f) return; if (!f.type.startsWith('image/') || f.size > MAX_FILE) return toast('กรุณาเลือกรูปภาพขนาดไม่เกิน 25 MB', 'err'); pendCover = f; dirty = true; if (covUrl) URL.revokeObjectURL(covUrl); covUrl = URL.createObjectURL(f); drawCov(covUrl); }
   else if (t.id === 'fc') { dirty = true; hideList(); }
   else if (t.closest('#dlg')) dirty = true;
+  if (dirty && t.closest('#dlg')) saveDraft();
 });
 document.addEventListener('keydown', e => {
   if (e.target.id === 'ct' && e.key === 'Enter' && !e.shiftKey && !e.isComposing && !coarse()) { e.preventDefault(); chatSend(); }
@@ -971,7 +1036,7 @@ document.addEventListener('scroll', e => {
   // the close event arrives a task later: skip cleanup if another dialog was opened in the meantime (it would wipe the new content)
   d.addEventListener('close', () => { if (!d.open) cleanupModal(); });
   d.addEventListener('click', e => { if (e.target === d && !dirty && !saving()) closeModal(); });   // a tap outside never throws away entered data
-  d.addEventListener('cancel', e => { if (!canLeave()) e.preventDefault(); });                      // Esc on PC, Back on Android
+  d.addEventListener('cancel', e => { if (!canLeave()) e.preventDefault(); else if (draftKey) { dropDraft(); draftKey = null; } });                      // Esc on PC, Back on Android
   $('#txt').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.close(); });
   $('#lb').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.close(); });   // only the dark area closes; a tap on the photo keeps it open for zooming
   try { api = CONFIG.supabaseUrl && CONFIG.supabaseKey ? await supabaseBackend() : await localBackend(); }
@@ -980,14 +1045,15 @@ document.addEventListener('scroll', e => {
     return;
   }
   let view = takeView();
-  history.scrollRestoration = 'manual';   // data draws after load, so the browser's own scroll restore would land too early
-  addEventListener('pagehide', saveView);
+  history.scrollRestoration = 'manual';
+  if (window.indexedDB) draftTx('readwrite', st => { st.openCursor().onsuccess = e => { const c = e.target.result; if (!c) return; if (Date.now() - c.value.at > DRAFT_TTL) c.delete(); c.continue(); }; }).catch(() => { });   // drop drafts older than 24 h   // data draws after load, so the browser's own scroll restore would land too early
+  addEventListener('pagehide', () => { saveDraft(true); saveView(); });
   // (1) F5, pull-to-refresh or closing the tab with unsaved form data or a running upload: the browser asks first
-  addEventListener('beforeunload', e => { if (dlg().open && (dirty || saving())) { e.preventDefault(); e.returnValue = ''; } });
+  addEventListener('beforeunload', e => { if (dlg().open && (saving() || (dirty && !draftOk))) { e.preventDefault(); e.returnValue = ''; } });   // a kept draft makes the warning unnecessary
   addEventListener('popstate', () => {
     if (!S.proj) return;
     const top = [$('#lb'), $('#txt'), dlg()].find(x => x.open);
-    if (top) { history.pushState({ hms: 'proj' }, ''); if (top !== dlg() || canLeave()) top.close(); return; }   // Back closes the open window first
+    if (top) { history.pushState({ hms: 'proj' }, ''); if (top !== dlg()) top.close(); else if (canLeave()) closeModal(); return; }   // Back closes the open window first
     transition(home);
   });
   home();
@@ -998,9 +1064,9 @@ document.addEventListener('scroll', e => {
       const v = view, p = v.p && S.projects.find(x => x.id === v.p); view = null;
       if (p) return enter(p, v);
       if (inProjEntry()) history.replaceState(null, '');   // the project is gone: this entry is the home page now
-      pendY = Number.isFinite(v.y) ? v.y : null;
+      pendY = Number.isFinite(v.y) ? v.y : null; pendForm = typeof v.d === 'string' ? v.d : null;
     }
-    if (!S.proj) { drawProjects(); return restoreY(); }
+    if (!S.proj) { drawProjects(); restoreY(); if (pendForm) { const d = pendForm; pendForm = null; reopenForm(d); } return; }
     const cur = rows.find(x => x.id === S.proj.id);
     // gone from the list after we had seen it = deleted on another device (the age check covers a just-created project not listed yet)
     if (!cur) { if (S.projSeen || Date.now() - (S.proj.createdAt || 0) > 60000) { toast('โครงการนี้ถูกลบแล้ว (Project deleted)'); closeModal(); goHome(); } }

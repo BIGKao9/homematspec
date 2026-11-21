@@ -486,3 +486,9 @@ html[data-theme="light"] .warn b{color:var(--tx)}
 html[data-theme="light"] .msg.me{background:#dbeafe;border-color:#93c5fd}
 html[data-theme="light"] .opt[aria-pressed=true]{color:var(--ac);background:rgb(180 83 9/.1)}
 @media (max-width:899px){html[data-theme="light"] .tab[data-t=chat]{color:var(--pri)}html[data-theme="light"] .tab[data-t=chat][aria-selected=true]{color:var(--ac)}}
+
+/* restored draft notice (see loadDraft in app.js) */
+.draftbar{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:0 0 14px;padding:8px 10px 8px 12px;border-radius:var(--r-sm);background:rgb(232 169 63/.14);color:var(--tx);font-size:.88rem;line-height:1.4}
+.draftbar .ic{width:18px;height:18px;color:var(--ac);flex:none}
+.draftbar span{flex:1;min-width:0}
+html[data-theme="light"] .draftbar{background:rgb(180 83 9/.1)}
