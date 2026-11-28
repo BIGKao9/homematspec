@@ -8,7 +8,7 @@
    Never put the service_role key here. */
 /* Release version, shown in About. Keep it equal to ?v= in index.html and to CACHE/SHELL in sw.js:
    1.0.x = fixes, 1.x.0 = new features. */
-const APP_VERSION = '1.1.0';
+const APP_VERSION = '1.1.1';
 const CONFIG = {
   supabaseUrl: 'https://czyefarlcanffczymewb.supabase.co',
   supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6eWVmYXJsY2FuZmZjenltZXdiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ3NjAzMTcsImV4cCI6MjExMDMzNjMxN30.1BDNW0KWKxejxbXT5iazqYDW8aNPSwsrSHL83UyUbJo',
