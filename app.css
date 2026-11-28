@@ -312,7 +312,7 @@ body.in-proj{padding-bottom:calc(var(--nav) + var(--safe-b) + 8px)}
 .credits>div{padding:12px 16px}.credits>div+div{border-top:1px solid var(--line)}
 .credits dt{color:var(--mu);font-size:.82rem;margin-bottom:2px}
 .credits dd{margin:0;font-weight:600;font-size:1.02rem}
-.dlg.full{width:min(100% - 24px,980px);height:min(92dvh,1100px)}
+.dlg.full{width:min(100% - 24px,980px);margin:max(64px,10dvh) auto auto;height:min(calc(100dvh - max(64px,10dvh) - 24px),1100px)}
 .pgs{flex:1 1 auto;min-height:0;overflow:auto;padding:8px;background:#5d6b7c;display:flex;flex-direction:column}
 .pgs::before,.pgs::after{content:"";flex:1 0 0}   /* centers a short drawing; collapses to 0 when pages overflow */
 .pgbtn{display:block;flex:none;width:100%;margin:0 0 8px;padding:0;border:0;border-radius:0;background:#fff;box-shadow:0 2px 10px rgb(0 0 0/.35);cursor:zoom-in}
@@ -380,7 +380,7 @@ body.in-proj .toast{bottom:calc(var(--nav) + var(--safe-b) + 14px)}
   .dlg.full{width:100%;margin:0;border:0;border-radius:0;height:100vh;height:100dvh;max-height:100vh;max-height:100dvh}
   .dlg.full::before{display:none}
   /* full-screen viewer: the installed app draws under the status bar and home indicator, so keep the X and the last page clear */
-  .dlg.full .dhead{padding-top:max(12px,env(safe-area-inset-top));padding-left:max(20px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}
+  .dlg.full .dhead{padding-top:calc(env(safe-area-inset-top,0px) + 28px);padding-left:max(20px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}
   .dlg.full .pgs{padding-bottom:calc(8px + var(--safe-b))}
   /* code-entry dialogs sit at the top, so the on-screen keyboard never covers the input or the Open button */
   .dlg.kb{width:calc(100% - 24px);margin:max(12px,env(safe-area-inset-top)) auto auto;border-radius:20px;border-bottom:1px solid var(--line-2);max-height:calc(100vh - 24px);max-height:calc(100dvh - 24px)}
